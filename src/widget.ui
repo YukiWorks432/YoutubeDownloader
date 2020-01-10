@@ -95,7 +95,7 @@
      <string>URL</string>
     </property>
    </widget>
-   <widget class="MYTextEdit" name="URLEntry">
+   <widget class="QTextEdit" name="URLEntry">
     <property name="geometry">
      <rect>
       <x>90</x>

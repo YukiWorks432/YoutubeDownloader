@@ -10,6 +10,7 @@
 #include <QtGui/QClipboard>
 #define NO_MIN_MAX
 #include <windows.h>
+#include <filesystem>
 #include "Header.hpp"
 
 class Widget : public QWidget, public Ui::Widget {
@@ -19,7 +20,6 @@ class Widget : public QWidget, public Ui::Widget {
 		// コンストラクタ
 		// 引数のQWidgetのポインタを渡すとそのウィジェットを親とする
 		Widget(QWidget *parent = nullptr);
-		std::string outDir;
 
 	// シグナルは宣言だけで定義はしない
 	// 自前で定義するとMOCが生成するのと被ってしまう

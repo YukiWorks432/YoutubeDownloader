@@ -1,5 +1,6 @@
 #include "widget.h"
-using std::vector; using std::string;
+using std::vector; using std::string; using std::to_string;
+namespace fs = std::filesystem;
 
 Widget::Widget(QWidget *parent) : QWidget(parent) {
     // setupUiは、UICが生成したクラスに実装されている関数
@@ -8,6 +9,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent) {
 
     // スロットは普通に呼び出せる
 	VideoCheckBox->setChecked(true);
+	ODEntry->setText(QString(fs::current_path().string().c_str()));
 
     // シグナルとスロットを接続
 	connect(URLEntry, SIGNAL(rightClicked()), this, SLOT(ClipPaste()));
@@ -20,7 +22,7 @@ void Widget::ClipPaste(){
 }
 
 void Widget::SelectDir() {
-	outDir = QFileDialog::getExistingDirectory(this, tr("フォルダの選択")).toUtf8().constData();
+	ODEntry->setText(QFileDialog::getExistingDirectory(this, tr("フォルダの選択")).toUtf8().constData());
 }
 
 void Widget::Download() {
