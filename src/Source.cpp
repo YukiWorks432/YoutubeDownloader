@@ -25,7 +25,6 @@ void YDR::Download(const Widget *widget) const {
 	char buf[256];
 	while (!feof(fp)) {
 		fgets(buf, 256, fp);
-		cout << string(buf) << endl;
 	}
 	
 	QString title = QString::fromLocal8Bit(buf);
