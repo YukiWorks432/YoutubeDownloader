@@ -9,6 +9,12 @@ class MYTextEdit : public QTextEdit {
 
 	public:
 		explicit MYTextEdit(QWidget *parent = nullptr);
+		void keyPressEvent(QKeyEvent *event) {
+			if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter)
+				event->ignore();
+			else
+				QTextEdit::keyPressEvent(event);
+        }
 
 	signals:
 		void rightClicked();

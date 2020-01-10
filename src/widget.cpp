@@ -19,7 +19,9 @@ Widget::Widget(QWidget *parent) : QWidget(parent) {
 }
 
 void Widget::ClipPaste(){
-	URLEntry->setText(QApplication::clipboard()->text());
+	string clip = QApplication::clipboard()->text().toStdString();
+	clip = clip.find("playlist") == string::npos ? clip.substr(0, clip.find("?list=")) : clip;
+	URLEntry->setText(clip.c_str());
 }
 
 void Widget::SelectDir() {
@@ -27,7 +29,9 @@ void Widget::SelectDir() {
 }
 
 void Widget::Download() {
+	DLButton->setText(tr("ダウンロード中"));
 	using Qt::CheckState::Checked;
 	YDR proc(URLEntry->toPlainText().toUtf8().constData(), ODEntry->toPlainText().toUtf8().constData(), (VCB->checkState() == Checked) << 1 + (ACB->checkState() == Checked), ExitCheckBox->checkState() == Checked);
 	proc.Download(this);
+	DLButton->setText(tr("ダウンロード開始"));
 }

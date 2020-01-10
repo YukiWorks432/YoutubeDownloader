@@ -107,6 +107,27 @@
     <property name="contextMenuPolicy">
      <enum>Qt::NoContextMenu</enum>
     </property>
+    <property name="inputMethodHints">
+     <set>Qt::ImhNone</set>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="tabChangesFocus">
+     <bool>true</bool>
+    </property>
+    <property name="lineWrapMode">
+     <enum>QTextEdit::NoWrap</enum>
+    </property>
+    <property name="lineWrapColumnOrWidth">
+     <number>0</number>
+    </property>
+    <property name="cursorWidth">
+     <number>1</number>
+    </property>
    </widget>
   </widget>
   <widget class="QFrame" name="DLFrame">
@@ -287,6 +308,27 @@
     </property>
     <property name="contextMenuPolicy">
      <enum>Qt::NoContextMenu</enum>
+    </property>
+    <property name="inputMethodHints">
+     <set>Qt::ImhNone</set>
+    </property>
+    <property name="verticalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="horizontalScrollBarPolicy">
+     <enum>Qt::ScrollBarAlwaysOff</enum>
+    </property>
+    <property name="tabChangesFocus">
+     <bool>true</bool>
+    </property>
+    <property name="lineWrapMode">
+     <enum>QTextEdit::NoWrap</enum>
+    </property>
+    <property name="lineWrapColumnOrWidth">
+     <number>0</number>
+    </property>
+    <property name="cursorWidth">
+     <number>1</number>
     </property>
    </widget>
    <widget class="QPushButton" name="SButton">
