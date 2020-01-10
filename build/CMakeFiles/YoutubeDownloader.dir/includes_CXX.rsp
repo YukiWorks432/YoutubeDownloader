@@ -1,0 +1,1 @@
+-IC:/youtube-dl/youtube-dl-src/build -IC:/youtube-dl/youtube-dl-src -IC:/youtube-dl/youtube-dl-src/build/YoutubeDownloader_autogen/include -IC:/youtube-dl/youtube-dl-src/src -isystem C:/dev/msys64/mingw64/include/QtCore -isystem C:/dev/msys64/mingw64/share/qt5/mkspecs/win32-g++ -isystem C:/dev/msys64/mingw64/include/QtGui -isystem C:/dev/msys64/mingw64/include/QtWidgets 

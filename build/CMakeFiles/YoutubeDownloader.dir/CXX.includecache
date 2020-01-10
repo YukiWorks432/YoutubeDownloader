@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/youtube-dl/youtube-dl-src/src/mytextedit.cpp
+mytextedit.h
+C:/youtube-dl/youtube-dl-src/src/mytextedit.h
+
+C:/youtube-dl/youtube-dl-src/src/mytextedit.h
+QtWidgets/QTextEdit
+-
+QtGui/QMouseEvent
+-
+
