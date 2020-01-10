@@ -22,6 +22,8 @@ file(GLOB_RECURSE UI_FILES src/*.ui)
 
 include_directories(src)
 
+
+
 set(CMAKE_CXX_FLAGS "-O0 -fopenmp -static")
 
 add_executable(${PROJECT_NAME}
