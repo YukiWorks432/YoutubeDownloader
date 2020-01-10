@@ -17,8 +17,8 @@ find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
-file(GLOB_RECURSE CPP_FILES src/*.cpp src/*/*.cpp)
-file(GLOB_RECURSE UI_FILES src/*.ui src/*/*.ui)
+file(GLOB_RECURSE CPP_FILES src/*.cpp)
+file(GLOB_RECURSE UI_FILES src/*.ui)
 
 include_directories(src)
 
