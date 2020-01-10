@@ -1,4 +1,5 @@
 #include "widget.h"
+#include "Header.hpp"
 using std::vector; using std::string; using std::to_string;
 namespace fs = std::filesystem;
 
@@ -8,7 +9,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent) {
     setupUi(this);
 
     // スロットは普通に呼び出せる
-	VideoCheckBox->setChecked(true);
+	VCB->setChecked(true);
 	ODEntry->setText(QString(fs::current_path().string().c_str()));
 
     // シグナルとスロットを接続
@@ -26,7 +27,7 @@ void Widget::SelectDir() {
 }
 
 void Widget::Download() {
-	if (ExitCheckBox->checkState()) {
-		std::exit(0);
-	}
+	using Qt::CheckState::Checked;
+	YDR proc(URLEntry->toPlainText().toUtf8().constData(), ODEntry->toPlainText().toUtf8().constData(), (VCB->checkState() == Checked) << 1 + (ACB->checkState() == Checked), ExitCheckBox->checkState() == Checked);
+	proc.Download(this);
 }

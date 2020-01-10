@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14.0)
 
-set(CMAKE_CXX_COMPILER clang++)
+set(CMAKE_CXX_COMPILER g++)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../../)
 set(CMAKE_BUILD_TYPE Release)
@@ -22,7 +22,7 @@ file(GLOB_RECURSE UI_FILES src/*.ui)
 
 include_directories(src)
 
-set(CMAKE_CXX_FLAGS "-O3 -fopenmp -static -mwindows")
+set(CMAKE_CXX_FLAGS "-O3 -fopenmp -static")
 
 add_executable(${PROJECT_NAME}
 	${CPP_FILES}

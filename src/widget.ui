@@ -95,7 +95,7 @@
      <string>URL</string>
     </property>
    </widget>
-   <widget class="QTextEdit" name="URLEntry">
+   <widget class="MYTextEdit" name="URLEntry">
     <property name="geometry">
      <rect>
       <x>90</x>
@@ -112,9 +112,9 @@
   <widget class="QFrame" name="DLFrame">
    <property name="geometry">
     <rect>
-     <x>280</x>
+     <x>260</x>
      <y>270</y>
-     <width>351</width>
+     <width>371</width>
      <height>80</height>
     </rect>
    </property>
@@ -130,7 +130,7 @@
    <widget class="QPushButton" name="DLButton">
     <property name="geometry">
      <rect>
-      <x>200</x>
+      <x>220</x>
       <y>20</y>
       <width>141</width>
       <height>41</height>
@@ -154,13 +154,13 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>181</width>
+      <width>211</width>
       <height>41</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>7</pointsize>
+      <pointsize>8</pointsize>
      </font>
     </property>
     <property name="contextMenuPolicy">
@@ -189,7 +189,7 @@
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
-   <widget class="QCheckBox" name="VideoCheckBox">
+   <widget class="QCheckBox" name="VCB">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -210,7 +210,7 @@
      <string>動画</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="AudioCheckBox">
+   <widget class="QCheckBox" name="ACB">
     <property name="geometry">
      <rect>
       <x>540</x>
@@ -305,6 +305,27 @@
      <string>選択</string>
     </property>
    </widget>
+  </widget>
+  <widget class="QLabel" name="LOG">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>270</y>
+     <width>231</width>
+     <height>71</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+   </property>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
