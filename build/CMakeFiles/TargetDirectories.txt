@@ -1,4 +1,0 @@
-C:/youtube-dl/youtube-dl-src/build/CMakeFiles/YoutubeDownloader.dir
-C:/youtube-dl/youtube-dl-src/build/CMakeFiles/edit_cache.dir
-C:/youtube-dl/youtube-dl-src/build/CMakeFiles/rebuild_cache.dir
-C:/youtube-dl/youtube-dl-src/build/CMakeFiles/YoutubeDownloader_autogen.dir
