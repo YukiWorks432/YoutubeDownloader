@@ -11,6 +11,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent) {
     // スロットは普通に呼び出せる
 	VCB->setChecked(true);
 	ODEntry->setText(QString(fs::current_path().string().c_str()));
+	LOG->setText(QString(""));
 
     // シグナルとスロットを接続
 	connect(URLEntry, SIGNAL(rightClicked()), this, SLOT(ClipPaste()));

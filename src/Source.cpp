@@ -19,18 +19,19 @@ void YDR::Download(const Widget *widget) const {
 		return;
 	}
 
-	std::stringbuf buf;
-	std::streambuf *prev = std::cout.rdbuf(&buf);
-
 	string cmd = "youtube-dl -e " + URL;
-	system(cmd.c_str());
+	auto fp = popen(cmd.c_str(), "r");
+	if (fp == NULL) return;
+	char buf[256];
+	while (!feof(fp)) {
+		fgets(buf, 256, fp);
+		cout << string(buf) << endl;
+	}
 	
-	string title = buf.str();
-	widget->LOG->setText(Widget::tr(title.c_str()));
+	QString title = QString::fromLocal8Bit(buf);
+	widget->LOG->setText(title);
 
 	// cmd = string("youtube -dl --ffmpeg--location \"./ffmpeg/bin/ffmpeg.exe\" --output \"") + outDir + string("\\");
-	
-	std::cout.rdbuf(prev);
 
 	if (ex) exit(0);
 }

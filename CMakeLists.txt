@@ -22,11 +22,13 @@ file(GLOB_RECURSE UI_FILES src/*.ui)
 
 include_directories(src)
 
-set(CMAKE_CXX_FLAGS "-O3 -fopenmp -static")
+set(CMAKE_CXX_FLAGS "-O0 -fopenmp -static")
 
 add_executable(${PROJECT_NAME}
 	${CPP_FILES}
 	${UI_FILES}
 )
+
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Widgets stdc++fs)
