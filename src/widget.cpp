@@ -11,12 +11,16 @@ Widget::Widget(QWidget *parent) : QWidget(parent) {
     // スロットは普通に呼び出せる
 	VCB->setChecked(true);
 	ODEntry->setText(QString(fs::current_path().string().c_str()));
-	LOG->setText(QString(""));
 
     // シグナルとスロットを接続
 	connect(URLEntry, SIGNAL(rightClicked()), this, SLOT(ClipPaste()));
     connect(SButton, SIGNAL(clicked()), this, SLOT(SelectDir()));
 	connect(DLButton, SIGNAL(clicked()), this, SLOT(Download()));
+}
+
+Widget::~Widget() {
+	thr_dl.detach();
+	thr_log.detach();
 }
 
 void Widget::ClipPaste(){
@@ -31,8 +35,9 @@ void Widget::SelectDir() {
 
 void Widget::Download() {
 	DLButton->setText(tr("ダウンロード中"));
-	using Qt::CheckState::Checked;
-	YDR proc(URLEntry->toPlainText().toUtf8().constData(), ODEntry->toPlainText().toUtf8().constData(), (VCB->checkState() == Checked) << 1 + (ACB->checkState() == Checked), ExitCheckBox->checkState() == Checked);
-	proc.Download(this);
-	DLButton->setText(tr("ダウンロード開始"));
+	thr_dl = std::thread([&]() {
+		using Qt::CheckState::Checked;
+		YDR proc(URLEntry->toPlainText().toUtf8().constData(), ODEntry->toPlainText().toUtf8().constData(), (VCB->checkState() == Checked) << 1 + (ACB->checkState() == Checked), ExitCheckBox->checkState() == Checked);
+		proc.Download(this);	
+	});
 }

@@ -16,21 +16,18 @@ set(CMAKE_AUTORCC ON)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Widgets REQUIRED)
+find_package(OpenMP REQUIRED)
 
 file(GLOB_RECURSE CPP_FILES src/*.cpp)
 file(GLOB_RECURSE UI_FILES src/*.ui)
 
 include_directories(src)
 
-
-
-set(CMAKE_CXX_FLAGS "-O0 -fopenmp -static")
+set(CMAKE_CXX_FLAGS "-O0 -fopenmp -pthread -static")
 
 add_executable(${PROJECT_NAME}
 	${CPP_FILES}
 	${UI_FILES}
 )
-
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 
 target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Widgets stdc++fs)
