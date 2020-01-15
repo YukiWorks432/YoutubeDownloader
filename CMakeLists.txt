@@ -4,7 +4,8 @@ set(CMAKE_CXX_COMPILER g++)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../../)
 set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(YoutubeDownloader CXX)
 
@@ -23,7 +24,7 @@ file(GLOB_RECURSE UI_FILES src/*.ui)
 
 include_directories(src)
 
-set(CMAKE_CXX_FLAGS "-O0 -fopenmp -pthread -static")
+set(CMAKE_CXX_FLAGS "-O3 -fopenmp -pthread -mwindows")
 
 add_executable(${PROJECT_NAME}
 	${CPP_FILES}

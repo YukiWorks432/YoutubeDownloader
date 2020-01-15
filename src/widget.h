@@ -14,6 +14,16 @@
 #define NO_MIN_MAX
 #include <windows.h>
 #include <filesystem>
+#include <QtWidgets/QApplication>
+#include <stdio.h>
+#include <vector>
+#include <iostream>
+#include <regex>
+#include <string>
+using std::cout; using std::endl;
+using std::array; using std::vector; using std::string; using std::to_string;
+namespace fs = std::filesystem;
+using namespace std::literals::string_literals;
 
 class Widget : public QWidget, public Ui::Widget {
     Q_OBJECT

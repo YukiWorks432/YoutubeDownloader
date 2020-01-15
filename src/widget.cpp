@@ -1,7 +1,5 @@
 #include "widget.h"
 #include "Header.hpp"
-using std::vector; using std::string; using std::to_string;
-namespace fs = std::filesystem;
 
 Widget::Widget(QWidget *parent) : QWidget(parent) {
     // setupUiは、UICが生成したクラスに実装されている関数
@@ -19,8 +17,8 @@ Widget::Widget(QWidget *parent) : QWidget(parent) {
 }
 
 Widget::~Widget() {
-	thr_dl.detach();
-	thr_log.detach();
+	thr_dl.join();
+	thr_log.join();
 }
 
 void Widget::ClipPaste(){
@@ -33,11 +31,21 @@ void Widget::SelectDir() {
 	ODEntry->setText(QFileDialog::getExistingDirectory(this, tr("フォルダの選択")).toUtf8().constData());
 }
 
+const char *ACs[] = { "best", "wav", "flac", "aac", "mp3" };
+
 void Widget::Download() {
+	if (tr("ダウンロード中") == DLButton->text()) return;
+	if (thr_dl.joinable()) thr_dl.join();
 	DLButton->setText(tr("ダウンロード中"));
+	const int ACI = ACCombo->currentIndex();
+	const char *&ac = ACs[ACI];
 	thr_dl = std::thread([&]() {
-		using Qt::CheckState::Checked;
-		YDR proc(URLEntry->toPlainText().toUtf8().constData(), ODEntry->toPlainText().toUtf8().constData(), (VCB->checkState() == Checked) << 1 + (ACB->checkState() == Checked), ExitCheckBox->checkState() == Checked);
+		YDR proc(
+			URLEntry->toPlainText().toUtf8().toStdString(),
+			ODEntry->toPlainText().toUtf8().toStdString(),
+			(VCB->checkState() == Qt::Checked ? YDR::Video : 0) | (ACB->checkState() == Qt::Checked ? YDR::Audio : 0),
+			ac,
+			ExitCheckBox->checkState() == Qt::Checked);
 		proc.Download(this);	
 	});
 }
