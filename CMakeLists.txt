@@ -18,6 +18,7 @@ find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(OpenMP REQUIRED)
+find_package(HarfBuzz REQUIRED)
 
 file(GLOB_RECURSE CPP_FILES src/*.cpp)
 file(GLOB_RECURSE UI_FILES src/*.ui)
@@ -31,4 +32,4 @@ add_executable(${PROJECT_NAME}
 	${UI_FILES}
 )
 
-target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Widgets stdc++fs)
+target_link_libraries(${PROJECT_NAME} Qt5::Core Qt5::Gui Qt5::Widgets HarfBuzz stdc++fs)
