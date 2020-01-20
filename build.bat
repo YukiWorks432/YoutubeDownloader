@@ -1,9 +1,8 @@
 set app=YoutubeDownloader
-set ver=0.0.1
 cd build
 ::rm -rf *
-::cmake -G "MSYS Makefiles" ..
-::make
+cmake -G "MSYS Makefiles" ..
+make
 call :ZIP
 
 :RET
@@ -12,13 +11,14 @@ exit /b
 
 :ZIP
 cd ../../
-mkdir %app%
-cd ./%app%
+rm -f ./%app%.zip
+cd %app%
+rm -rf *
 rsync -a ../ ./ --exclude "/%app%/"
 Python ./copydll.py ./%app%.exe
-rm ./copydll.py
+rm ./copydll.py ./ldd.py
 cd ../
-PowerShell Compress-Archive -Path ./%app% -DestinationPath ./%app%_v%ver%.zip -Force
-rm -r -f %app%
+PowerShell Compress-Archive -Path ./%app% -DestinationPath ./%app%.zip -update
+rm -f %app%.exe
 cd ./%app%-src
 exit /b

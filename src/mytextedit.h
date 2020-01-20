@@ -22,6 +22,7 @@ class MYTextEdit : public QTextEdit {
 	private:
 		void mousePressEvent(QMouseEvent *e) {
 			if (e->button() == Qt::RightButton) emit rightClicked();
+			else QTextEdit::mousePressEvent(e);
 		}
 };
 

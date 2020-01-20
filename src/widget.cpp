@@ -21,9 +21,9 @@ Widget::~Widget() {
 	thr_log.join();
 }
 
-void Widget::ClipPaste(){
+void Widget::ClipPaste() {
 	string clip = QApplication::clipboard()->text().toStdString();
-	clip = clip.find("playlist") == string::npos ? clip.substr(0, clip.find("?list=")) : clip;
+	clip = clip.find("playlist") == string::npos ? clip.substr(0, clip.find("list=") - 1) : clip;
 	URLEntry->setText(clip.c_str());
 }
 
