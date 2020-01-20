@@ -1,24 +1,30 @@
+@echo off
 set app=YoutubeDownloader
 cd build
 ::rm -rf *
-cmake -G "MSYS Makefiles" ..
-make
-call :ZIP
-
-:RET
-cd ..
-exit /b
+cmake -G "MSYS Makefiles" .. > nul
+make > result.txt 2>&1
+findstr /i Error result.txt > nul
+if %errorlevel%==0 (
+    echo make Error
+    goto :RET
+) else (
+    goto :ZIP
+)
 
 :ZIP
 cd ../../
-rm -f ./%app%.zip
 cd %app%
 rm -rf *
 rsync -a ../ ./ --exclude "/%app%/"
 Python ./copydll.py ./%app%.exe
-rm ./copydll.py ./ldd.py
+rm -f ./copydll.py ./ldd.py ./%app%.zip
 cd ../
-PowerShell Compress-Archive -Path ./%app% -DestinationPath ./%app%.zip -update
+PowerShell Compress-Archive -CompressionLevel Fastest -Update -Path ./%app% -DestinationPath ./%app%.zip
 rm -f %app%.exe
 cd ./%app%-src
+exit /b
+
+:RET
+cd ..
 exit /b

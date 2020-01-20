@@ -3,6 +3,8 @@
 
 #include "ui_widget.h"
 #include <QtWidgets/QWidget>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QStyleFactory>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
 #include <QtCore/QtCore>
@@ -14,7 +16,6 @@
 #define NO_MIN_MAX
 #include <windows.h>
 #include <filesystem>
-#include <QtWidgets/QApplication>
 #include <stdio.h>
 #include <vector>
 #include <iostream>
