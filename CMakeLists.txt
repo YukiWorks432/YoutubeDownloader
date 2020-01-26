@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.14.0)
 
+#C:\dev\msys64\mingw64\bin;C:\dev\msys64\mingw32\bin;C:\dev\msys64\clang64\bin;C:\dev\msys64\clang32\bin;C:\dev\msys64;
 set(CMAKE_CXX_COMPILER g++)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../../)
@@ -25,7 +26,11 @@ file(GLOB_RECURSE UI_FILES src/*.ui)
 
 include_directories(src)
 
-set(CMAKE_CXX_FLAGS "-O3 -fopenmp -pthread -mwindows")
+if(CMAKE_BUILD_TYPE EQUAL Debug) 
+	set(CMAKE_CXX_FLAGS "-O0 -g3 -fopenmp -pthread -DDEBUG")
+else()
+	set(CMAKE_CXX_FLAGS "-O3 -fopenmp -pthread -mwindows")
+endif()
 
 add_executable(${PROJECT_NAME}
 	${CPP_FILES}
