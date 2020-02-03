@@ -1,9 +1,9 @@
 @echo off
 set app=YoutubeDownloader
-set Reset=TRUE
+set Reset=1
 set type=Release
 cd build
-if %Reset%==TRUE (
+if %Reset%==1 (
     rm -rf *
 )
 cmake -G "MSYS Makefiles" .. > result.txt 2>&1
@@ -19,14 +19,14 @@ if %errorlevel%==0 (
 :ZIP
 cd ../../
 cd %app%
-if %Reset%==TRUE (
+if %Reset%==1 (
     rm -rf *
 )
 rsync -a ../ ./ --exclude "/%app%/"
-Python ./copydll.py ./%app%.exe
+Python ./copydll.py %app%.exe
 rm -f ./copydll.py ./ldd.py ./%app%.zip
 if %type%==Debug (
-    %app%.exe
+    gdb %app%.exe
     cd ../
 ) else (
     cd ../

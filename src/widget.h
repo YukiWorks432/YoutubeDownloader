@@ -1,5 +1,5 @@
-#ifndef _EXSAMPLE_WIDGET_H_
-#define _EXSAMPLE_WIDGET_H_
+#ifndef EXSAMPLE_WIDGET_H_
+#define EXSAMPLE_WIDGET_H_
 
 #include "ui_widget.h"
 #include <QtWidgets/QWidget>
@@ -12,6 +12,7 @@
 #include <QtCore/QThread>
 #include <QtGui/QtGui>
 #include <QtGui/QClipboard>
+#include <algorithm>
 #include <thread>
 #include <mutex>
 #include <atomic>
@@ -23,7 +24,8 @@
 #include <iostream>
 #include <regex>
 #include <string>
-#include "strconv.hpp"
+#include <omp.h>
+#include "cglob.hpp"
 using std::cout; using std::wcout; using std::endl;
 using std::array; using std::vector; using std::string; using std::wstring; using std::to_string;
 namespace fs = std::filesystem;
@@ -36,7 +38,25 @@ inline void delList(string &s) {
 		s = s.substr(0, s.find("list=") - 1);
 	}
 }
-
+inline std::string WStringToString(std::wstring oWString) {
+    // wstring → SJIS
+    int iBufferSize = WideCharToMultiByte(CP_OEMCP, 0, oWString.c_str(), -1, (char *)NULL, 0, NULL, NULL);
+ 
+    // バッファの取得
+    CHAR* cpMultiByte = new CHAR[iBufferSize];
+ 
+    // wstring → SJIS
+    WideCharToMultiByte(CP_OEMCP, 0, oWString.c_str(), -1, cpMultiByte, iBufferSize, NULL, NULL );
+ 
+    // stringの生成
+    std::string oRet(cpMultiByte, cpMultiByte + iBufferSize - 1);
+ 
+    // バッファの破棄
+    delete[] cpMultiByte;
+ 
+    // 変換結果を返す
+    return oRet;
+}
 inline void normalizeTitle(string &targetStr) {
     const char CR = '\r';
     const char LF = '\n';
@@ -71,6 +91,7 @@ class Widget : public QWidget, public Ui::Widget {
 		~Widget();
 		void closeEvent(QCloseEvent *e);
 		void addLOG(string s);
+		void addLOG(wstring ws);
 		void addLOG(const char* s);
 		bool dled();
 		std::mutex* mtx;
@@ -95,4 +116,4 @@ class Widget : public QWidget, public Ui::Widget {
 		string logs;
 };
 
-#endif // _EXAMPLE_WIDGET_H_
+#endif // EXAMPLE_WIDGET_H_

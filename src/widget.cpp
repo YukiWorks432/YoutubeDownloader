@@ -14,7 +14,10 @@ Widget::Widget(QWidget *parent) : QWidget(parent) {
 
     // スロットは普通に呼び出せる
 	VCB->setChecked(true);
+	ThCheckBox->setChecked(true);
 	ODEntry->setText(QString((fs::current_path().string() + "\\Download"s).c_str()));
+
+	addLOG("OpenMP最大スレッド数 : "s + to_string(omp_get_max_threads()));
 
 	mtx = new std::mutex;
 	LOGt = new QTimer;
@@ -34,7 +37,7 @@ Widget::~Widget() {
 }
 
 void Widget::closeEvent(QCloseEvent *e) {
-	if (thr_dl.joinable()) {
+	if (DLButton->text() != tr("ダウンロード開始")) {
 		const auto ret = QMessageBox::question(this, tr("終了確認"), tr("終了しますか？\n(ダウンロードの終了を待ちます)"));
 		if (ret == QMessageBox::No) {
 			e->ignore();
@@ -51,7 +54,21 @@ void Widget::addLOG(string s) {
 		logs += normalize(s);
 		return;
 	}
-	if (logs.find(s) == string::npos) {
+	string ltmp;
+	logs.copy(ltmp.data(), logs.rfind('\n') != string::npos ? logs.rfind('\n') : 0, logs.length());
+	if (ltmp.find(s) == string::npos) {
+		logs += "\n"s + normalize(s);
+	}
+}
+void Widget::addLOG(wstring ws) {
+	string s = WStringToString(ws);
+	if (logs.empty()) {
+		logs += normalize(s);
+		return;
+	}
+	string ltmp;
+	logs.copy(ltmp.data(), logs.rfind('\n') != string::npos ? logs.rfind('\n') : 0, logs.length());
+	if (ltmp.find(s) == string::npos) {
 		logs += "\n"s + normalize(s);
 	}
 }
@@ -61,13 +78,18 @@ void Widget::addLOG(const char* s) {
 		logs += normalize(text);
 		return;
 	}
-	if (logs.find(text) == string::npos) {
+	string ltmp;
+	logs.copy(ltmp.data(), logs.rfind('\n') != string::npos ? logs.rfind('\n') : 0, logs.length());
+	if (ltmp.find(text) == string::npos) {
 		logs += "\n"s + normalize(text);
 	}
 }
 
 void Widget::updateLOG() {
 	LOG->setText(QString::fromStdString(logs));
+	QTextCursor c = LOG->textCursor();
+	c.movePosition(QTextCursor::End);
+	LOG->setTextCursor(c);
 	LOG->update();
 }
 
@@ -90,21 +112,21 @@ void Widget::DownloadEnd() {
 	if (!ENDDL.load()) return;
 	DLButton->setText("ダウンロード開始");
 	LOGt->stop();
-	thr_dl.detach();
+	timer->stop();
+	updateLOG();
 }
 
-void dl(Widget *const iui, const string iURL, const string ioutDir, const uint8_t iVAA, const char *const iAC, const bool iex) noexcept{
-	YDR proc(iui, iURL, ioutDir, iVAA, iAC, iex);
+void dl(Widget *const iui, const string iURL, const string ioutDir, const string iffdir, const uint8_t iVAA, const char *const iAC, const bool ith, const bool iex) noexcept{
+	YDR proc(iui, iURL, ioutDir, iffdir, iVAA, iAC, ith, iex);
 	proc.Download();
 	return;
 }
 
 void Widget::Download() {
 	if (QString("ダウンロード中") == DLButton->text()) return;
-	if (thr_dl.joinable()) thr_dl.detach();
+	if (thr_dl.joinable()) thr_dl.join();
 
 	ENDDL = false;
-	logs.clear();
 
 	string url = URLEntry->toPlainText().toUtf8().toStdString();
 	if (url.empty()) {
@@ -118,7 +140,7 @@ void Widget::Download() {
 	delList(url);
 	URLEntry->setText(url.c_str());
 
-	string od = ODEntry->toPlainText().toUtf8().toStdString();
+	const string od = ODEntry->toPlainText().toUtf8().toStdString();
 	if (od.empty()) {
 		LOG->setText("空白を埋めてください");
 		return;
@@ -128,19 +150,28 @@ void Widget::Download() {
 		return;
 	}
 
+	vector<fs::path> p;
+	if (!cglob::glob("\\bin\\ffmpeg.exe", p)) {
+		LOG->setText("ffmpegにアクセスできませんでした。アクセス権限を確認してください。");
+		return;
+	}
+	const string ffdir = p[0].string();
+
 	const uint8_t VAA = (VCB->checkState() == Qt::Checked ? YDR::Video : 0) | (ACB->checkState() == Qt::Checked ? YDR::Audio : 0);
 	if (VAA == 0) {
 		LOG->setText("動画か音声か、\n一つは選択してください(複数可)");
 		return;
 	}
 	
-	auto ac = ACs[ACCombo->currentIndex()].c_str();
+	const char *ac = ACs[ACCombo->currentIndex()].c_str();
+
+	const bool th = ThCheckBox->checkState() == Qt::Checked;
 	
-	bool ex = ExitCheckBox->checkState() == Qt::Checked;
+	const bool ex = ExitCheckBox->checkState() == Qt::Checked;
 	DLButton->setText("ダウンロード中");
 	timer->start(msec);
 	LOGt->start(msec);
 
-	thr_dl = std::thread(dl, this, url, od, VAA, ac, ex);
+	thr_dl = std::thread(dl, this, url, od, ffdir, VAA, ac, th, ex);
 	return;
 }
