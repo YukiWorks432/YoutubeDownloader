@@ -1,135 +1,7 @@
 #include "Header.hpp"
 
-inline void GLEM(wstring &result) noexcept{
-	auto Er = GetLastError();
-	cout << Er << endl;
-	const ulong s = 2048;
-	std::wstring buf(s, '\0');
-	FormatMessage(
-		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, Er,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
-		(LPTSTR)buf.data(), static_cast<DWORD>(s), NULL
-	);
-	result = buf;
-	return;
-}
-inline void GLEM(string &result) noexcept{
-	auto Er = GetLastError();
-	cout << Er << endl;
-	const ulong s = 2048;
-	std::wstring buf(s, '\0');
-	FormatMessage(
-		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL, Er,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
-		(LPTSTR)buf.data(), static_cast<DWORD>(s), NULL
-	);
-	result = WStringToString(buf);
-	return;
-}
-
-inline bool Popen(const string command, string &result) noexcept{
-	SetLastError(0);
-	SECURITY_ATTRIBUTES sa;
-	HANDLE read, write;
-	string r;
-
-	std::shared_ptr<char> cmd(new char[command.length() + 1], std::default_delete<char[]>());
-	std::copy(command.begin(), command.end(), cmd.get());
-	cmd.get()[command.length()] = '\0';
-
-	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-	sa.bInheritHandle = TRUE;
-	sa.lpSecurityDescriptor = NULL;
-
-	if (!CreatePipe(&read, &write, &sa, 0)) {
-		string r;
-		GLEM(r);
-		result = "Failed CreatePipe() : "s + r;
-		return false;
-	}
-
-	STARTUPINFO si = {};
-	si.cb = sizeof(STARTUPINFO);
-    si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
-    si.wShowWindow = SW_HIDE;
-    si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
-    si.hStdOutput = write;
-    si.hStdError = write;
-
-	if (si.hStdOutput == INVALID_HANDLE_VALUE || si.hStdError == INVALID_HANDLE_VALUE) {
-		result = "Failed Get Handle"s;
-		return false;
-	}
-
-	PROCESS_INFORMATION pi = {};
-	if (!CreateProcessA(NULL, cmd.get(), NULL, NULL, TRUE, DETACHED_PROCESS, NULL, NULL, &si, &pi)) {
-		string r;
-		GLEM(r);
-		result = "Failed CreateProcessA()"s + r;
-		return false;
-	}
-
-	HANDLE child = pi.hProcess;
-	if (!CloseHandle(pi.hThread)) {
-		string r;
-		GLEM(r);
-		result = "Failed CloseHandle(pi.hThread) : "s + r;
-		return false;
-	}
-	if (WaitForSingleObject(child, INFINITE) != WAIT_OBJECT_0) {
-		string r;
-		GLEM(r);
-		result = "Failed WaitForSingleObject : "s + r;
-		return false;
-	}
-	if (!CloseHandle(write)) {
-		string r;
-		GLEM(r);
-		result = "Failed CloseHandle : "s + r;
-		return false;
-	}
-
-	std::array<char, 1280> buf;
-	DWORD rlen = 0;
-	while (ReadFile(read, buf.data(), buf.size(), &rlen, NULL)) {
-		std::copy(buf.begin(), buf.begin() + rlen, std::back_inserter(result));
-	}
-
-	if (!CloseHandle(read)) {
-		string r;
-		GLEM(r);
-		result = "Failed CloseHandle(read)"s + r;
-		return false;
-	}
-
-	return true;
-}
-
-inline std::vector<std::string> split(std::string str, char del) noexcept{
-    int first = 0;
-    int last = str.find_first_of(del);
- 
-    std::vector<std::string> result;
- 
-    while (first < str.size()) {
-        std::string subStr(str, first, last - first);
- 
-        result.push_back(subStr);
- 
-        first = last + 1;
-        last = str.find_first_of(del, first);
- 
-        if (last == std::string::npos) {
-            last = str.size();
-        }
-    }
- 
-    return result;
-}
-
 void YDR::Download() const {
+	using namespace Popen;
 	uint errs = 0;
 	string VFs, AFs;
 	// タイトル、フォーマットの取得
@@ -158,7 +30,7 @@ void YDR::Download() const {
 		{
 			string buf;
 			const string cmd = "youtube-dl -e "s + URL;
-			if (!Popen(cmd, buf)) {
+			if (!Popen::Popen(cmd, buf)) {
 				std::lock_guard lock(*(ui->mtx));
 				ui->addLOG("タイトル取得失敗"s);
 				++errs;
@@ -171,7 +43,7 @@ void YDR::Download() const {
 		{
 			string buf;
 			string cmd = "youtube-dl -F --youtube-skip-dash-manifest "s + URL;
-			if (!Popen(cmd, buf)) {
+			if (!Popen::Popen(cmd, buf)) {
 				std::lock_guard lock(*(ui->mtx));
 				ui->addLOG("フォーマット取得失敗"s);
 				ui->addLOG(QString::fromLocal8Bit(buf.c_str()).toStdString());
@@ -205,15 +77,15 @@ void YDR::Download() const {
 	// コマンドの作成
 	{
 		if (VAA & Video) {
-			cmd 			= "youtube-dl --ffmpeg-location \""s + ffdir + "\" -f "s + VFs + " --no-check-certificate --no-part --add-metadata"s;
-			if (th) cmd 	+= " --write-thumbnail --embed-thumbnail"s;
-			cmd				+= " --output \""s + outDir + "\\Videos\\%(title)s.%(ext)s\" \""s + URL + "\""s;
+			cmd 			= "youtube-dl --ffmpeg-location \"" + ffdir + "\" -f " + VFs + " --no-check-certificate --no-part --add-metadata";
+			if (th) cmd 	+= " --write-thumbnail";
+			cmd				+= " --output \"" + outDir + "\\Videos\\%(title)s.%(ext)s\" \"" + URL + "\"";
 		}
 		if (VAA & Audio) {
-			cmd1 			= "youtube-dl --ffmpeg-location \""s + ffdir + "\" -f "s + AFs + " --no-check-certificate --no-part"s
-							+ " -x --audio-format "s + string(AC) + " --audio-quality 0 --postprocessor-args \"-compression_level 12\" --add-metadata "s;
-			if (th) cmd1 	+= " --write-thumbnail --embed-thumbnail"s;
-			cmd1 			+= " --output \""s + outDir + "\\Audios\\%(title)s.%(ext)s\" \""s + URL + "\""s;
+			cmd1 			= "youtube-dl --ffmpeg-location \"" + ffdir + "\" -f " + AFs + " --no-check-certificate --no-part"
+							" -x --audio-format " + string(AC) + " --audio-quality 0 --postprocessor-args \"-compression_level 12\" --add-metadata ";
+			if (th) cmd1 	+= " --write-thumbnail";
+			cmd1 			+= " --output \"" + outDir + "\\Audios\\%(title)s.%(ext)s\" \"" + URL + "\"";
 		}
 	}
 
@@ -373,6 +245,34 @@ void YDR::Download() const {
 	return;
 }
 
+inline void opening(Widget *ui) {
+	std::array<QFrame *, 6> frame = {
+		ui->URLFrame, ui->VorA, ui->ACCs, ui->OutDirFrame, ui->LOGFrame, ui->DLFrame,
+	};
+
+	int ms = 1000;
+	for (int i = 0; i < 6; ++i) {
+		auto anime = new QPropertyAnimation(frame[i], "geometry");
+		anime->setDuration(ms);
+		QRect rec = frame[i]->geometry();
+		anime->setStartValue(QRect(rec.x(), rec.y() + 100 * (i + 1), rec.width() , rec.height()));
+		anime->setEndValue(rec);
+		anime->setEasingCurve(QEasingCurve::OutQuint);
+
+		auto oeff = new QGraphicsOpacityEffect(ui);
+		frame[i]->setGraphicsEffect(oeff);
+		auto anime1 =  new QPropertyAnimation(ui, "opacity");
+		anime1->setTargetObject(oeff);
+		anime1->setDuration(ms);
+		anime1->setStartValue(0.0);
+		anime1->setEndValue(1.0);
+		anime1->setEasingCurve(QEasingCurve::OutQuint);
+		
+		anime->start(QAbstractAnimation::DeleteWhenStopped);
+		anime1->start(QAbstractAnimation::DeleteWhenStopped);
+	}
+}
+
 int main(int argc, char **argv) {
 	SetConsoleOutputCP(CP_UTF8);
 	setvbuf(stdout, nullptr, _IOFBF, size_t(2560));
@@ -383,6 +283,7 @@ int main(int argc, char **argv) {
     // 自作のWidgetクラスを生成、表示
     Widget *widget = new Widget;
     widget->show();
+	opening(widget);
 
     // ループに入る
     return app.exec();

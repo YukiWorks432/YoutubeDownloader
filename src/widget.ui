@@ -10,19 +10,19 @@
     <x>0</x>
     <y>0</y>
     <width>1080</width>
-    <height>420</height>
+    <height>460</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>1080</width>
-    <height>420</height>
+    <height>460</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>1080</width>
-    <height>420</height>
+    <height>460</height>
    </size>
   </property>
   <property name="font">
@@ -53,14 +53,20 @@
   <property name="windowTitle">
    <string>YoutubeDownloader</string>
   </property>
+  <property name="windowOpacity">
+   <double>1.000000000000000</double>
+  </property>
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
   </property>
   <widget class="QFrame" name="URLFrame">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>10</y>
+     <y>45</y>
      <width>1061</width>
      <height>61</height>
     </rect>
@@ -92,13 +98,13 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>51</width>
+      <width>1041</width>
       <height>41</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p heavy</family>
+      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
       <italic>false</italic>
@@ -116,7 +122,7 @@
      <string>URL</string>
     </property>
    </widget>
-   <widget class="MYTextEdit" name="URLEntry" native="true">
+   <widget class="MYTextEdit" name="URLEntry">
     <property name="geometry">
      <rect>
       <x>90</x>
@@ -127,7 +133,7 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p heavy</family>
+      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
       <italic>false</italic>
@@ -144,13 +150,13 @@
     <property name="inputMethodHints">
      <set>Qt::ImhNone</set>
     </property>
-    <property name="tabChangesFocus" stdset="0">
+    <property name="tabChangesFocus">
      <bool>true</bool>
     </property>
-    <property name="lineWrapColumnOrWidth" stdset="0">
+    <property name="lineWrapColumnOrWidth">
      <number>0</number>
     </property>
-    <property name="cursorWidth" stdset="0">
+    <property name="cursorWidth">
      <number>1</number>
     </property>
    </widget>
@@ -159,7 +165,7 @@
    <property name="geometry">
     <rect>
      <x>700</x>
-     <y>350</y>
+     <y>385</y>
      <width>371</width>
      <height>61</height>
     </rect>
@@ -197,7 +203,7 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p heavy</family>
+      <family>M+ 2p black</family>
       <pointsize>10</pointsize>
       <weight>50</weight>
       <italic>false</italic>
@@ -210,6 +216,9 @@
     </property>
     <property name="contextMenuPolicy">
      <enum>Qt::NoContextMenu</enum>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
     </property>
     <property name="text">
      <string>ダウンロード開始</string>
@@ -239,7 +248,7 @@
    <widget class="QCheckBox" name="ExitCheckBox">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>0</x>
       <y>0</y>
       <width>211</width>
       <height>61</height>
@@ -247,7 +256,7 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p heavy</family>
+      <family>M+ 2p black</family>
       <pointsize>8</pointsize>
       <weight>50</weight>
       <italic>false</italic>
@@ -270,7 +279,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>80</y>
+     <y>115</y>
      <width>1061</width>
      <height>41</height>
     </rect>
@@ -308,7 +317,7 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p heavy</family>
+      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
       <italic>false</italic>
@@ -337,7 +346,7 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p heavy</family>
+      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
       <italic>false</italic>
@@ -363,7 +372,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>190</y>
+     <y>225</y>
      <width>1061</width>
      <height>61</height>
     </rect>
@@ -384,24 +393,27 @@
    <property name="contextMenuPolicy">
     <enum>Qt::NoContextMenu</enum>
    </property>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
    <property name="frameShape">
     <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="frameShadow">
     <enum>QFrame::Raised</enum>
    </property>
-   <widget class="QLabel" name="ODLlabel">
+   <widget class="QLabel" name="ODlabel">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>71</width>
+      <width>971</width>
       <height>41</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p heavy</family>
+      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
       <italic>false</italic>
@@ -430,7 +442,7 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p heavy</family>
+      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
       <italic>false</italic>
@@ -449,6 +461,9 @@
     </property>
     <property name="layoutDirection">
      <enum>Qt::LeftToRight</enum>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
     </property>
     <property name="inputMethodHints">
      <set>Qt::ImhNone</set>
@@ -483,7 +498,7 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p heavy</family>
+      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
       <italic>false</italic>
@@ -497,16 +512,19 @@
     <property name="contextMenuPolicy">
      <enum>Qt::NoContextMenu</enum>
     </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
     <property name="text">
      <string>選択</string>
     </property>
    </widget>
   </widget>
-  <widget class="QFrame" name="frame">
+  <widget class="QFrame" name="ACCs">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>130</y>
+     <y>165</y>
      <width>1061</width>
      <height>51</height>
     </rect>
@@ -523,6 +541,9 @@
      <stylestrategy>PreferAntialias</stylestrategy>
      <kerning>true</kerning>
     </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
    </property>
    <property name="frameShape">
     <enum>QFrame::StyledPanel</enum>
@@ -541,7 +562,7 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p heavy</family>
+      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
       <italic>false</italic>
@@ -554,6 +575,9 @@
     </property>
     <property name="layoutDirection">
      <enum>Qt::RightToLeft</enum>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
     </property>
     <property name="editable">
      <bool>false</bool>
@@ -601,7 +625,7 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p heavy</family>
+      <family>M+ 2p black</family>
       <pointsize>12</pointsize>
       <weight>50</weight>
       <italic>false</italic>
@@ -620,78 +644,112 @@
     </property>
    </widget>
   </widget>
-  <widget class="QTextEdit" name="LOG">
+  <widget class="QFrame" name="Frame">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1081</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
+   </property>
+   <widget class="QPushButton" name="closeButton">
+    <property name="geometry">
+     <rect>
+      <x>1040</x>
+      <y>10</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>M+ 2p black</family>
+      <pointsize>20</pointsize>
+      <italic>false</italic>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton#closeButton{border-image:url(./styles/icons/close.png);}
+QPushButton:hover#closeButton{border-image:url(./styles/icons/close1.png);}</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QFrame" name="LOGFrame">
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>260</y>
+     <y>300</y>
      <width>681</width>
      <height>151</height>
     </rect>
    </property>
-   <property name="palette">
-    <palette>
-     <active>
-      <colorrole role="Base">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>240</red>
-         <green>240</green>
-         <blue>240</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </active>
-     <inactive>
-      <colorrole role="Base">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>240</red>
-         <green>240</green>
-         <blue>240</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </inactive>
-     <disabled>
-      <colorrole role="Base">
-       <brush brushstyle="SolidPattern">
-        <color alpha="255">
-         <red>240</red>
-         <green>240</green>
-         <blue>240</blue>
-        </color>
-       </brush>
-      </colorrole>
-     </disabled>
-    </palette>
+   <property name="autoFillBackground">
+    <bool>false</bool>
    </property>
-   <property name="font">
-    <font>
-     <family>M+ 2p heavy</family>
-     <pointsize>8</pointsize>
-     <weight>50</weight>
-     <italic>false</italic>
-     <bold>false</bold>
-     <underline>false</underline>
-     <strikeout>false</strikeout>
-     <stylestrategy>PreferAntialias</stylestrategy>
-     <kerning>true</kerning>
-    </font>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
    </property>
    <property name="frameShadow">
-    <enum>QFrame::Sunken</enum>
+    <enum>QFrame::Raised</enum>
    </property>
-   <property name="readOnly">
-    <bool>true</bool>
-   </property>
+   <widget class="QTextEdit" name="LOG">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>681</width>
+      <height>151</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>M+ 2p black</family>
+      <pointsize>8</pointsize>
+      <weight>50</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+      <underline>false</underline>
+      <strikeout>false</strikeout>
+      <stylestrategy>PreferAntialias</stylestrategy>
+      <kerning>true</kerning>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Sunken</enum>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+   </widget>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
    <class>MYTextEdit</class>
-   <extends>QWidget</extends>
+   <extends>QTextEdit</extends>
    <header>mytextedit.h</header>
   </customwidget>
  </customwidgets>
