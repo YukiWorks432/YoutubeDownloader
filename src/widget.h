@@ -38,6 +38,11 @@ using std::array; using std::vector; using std::string; using std::wstring; usin
 namespace fs = std::filesystem;
 using namespace std::literals::string_literals;
 
+inline QString operator""_q(const char *str, size_t len)
+{	return QString(str);	}
+inline QString operator+(QString qstr, std::string str)
+{	return qstr + QString::fromStdString(str);	}
+
 inline std::vector<std::string> split(const std::string &str, const char &del) noexcept{
     int first = 0;
     int last = str.find_first_of(del);
@@ -121,6 +126,7 @@ class Widget : public QWidget, public Ui::Widget {
 		string fracolor;
 		string textcolor;
 		string textcolor_h;
+		string textcolor_l;
 		string selection;
 		string ST;
 		string border_w;
@@ -129,6 +135,9 @@ class Widget : public QWidget, public Ui::Widget {
 
 	// オリジナルのsignalは自ら定義する必要がある
 	signals:
+
+	protected:
+		bool eventFilter(QObject *obj, QEvent *event);
 
 	// slotsで宣言するとスロットとしても使える
 	private slots:
@@ -149,6 +158,7 @@ class Widget : public QWidget, public Ui::Widget {
 		bool isDrag = false;
 		QPoint offset = QPoint(0, 0);
 		bool hovers = false;
+		bool hovering = false;
 };
 
 #endif // EXAMPLE_WIDGET_H_

@@ -1,8 +1,8 @@
 @echo off
 set app=YoutubeDownloader
-set Reset=0
+set Reset=1
 set type=Release
-set comp=0
+set comp=1
 cd build
 if %Reset%==1 (
     rm -rf *
