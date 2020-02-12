@@ -8,6 +8,7 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QGraphicsOpacityEffect>
+#include <QtWidgets/QGraphicsView>
 #include <QtCore/QtCore>
 #include <QtCore/QProcess>
 #include <QtCore/QThread>
@@ -42,6 +43,8 @@ inline QString operator""_q(const char *str, size_t len)
 {	return QString(str);	}
 inline QString operator+(QString qstr, std::string str)
 {	return qstr + QString::fromStdString(str);	}
+inline string operator+(string str_, int n)
+{	return str_ + to_string(n); }
 
 inline std::vector<std::string> split(const std::string &str, const char &del) noexcept{
     int first = 0;
@@ -103,6 +106,19 @@ inline string HexToRGBA(const string &Hex, const int &a) noexcept{
 	return rgba;
 }
 
+struct pallet {
+	string wincolor;
+	string fracolor;
+	string textcolor;
+	string textcolor_h;
+	string textcolor_l;
+	string selection;
+	string ST;
+	string border_w;
+	string border_c;
+	string custom;
+};
+
 class Widget : public QWidget, public Ui::Widget {
     Q_OBJECT
 
@@ -119,25 +135,23 @@ class Widget : public QWidget, public Ui::Widget {
 		void addLOG(wstring ws);
 		void addLOG(QString qs);
 		void addLOG(const char* s);
-		void dohover();
 		bool dled();
 		std::mutex *const mtx;
-		string wincolor;
-		string fracolor;
-		string textcolor;
-		string textcolor_h;
-		string textcolor_l;
-		string selection;
-		string ST;
-		string border_w;
-		string border_c;
-		string custom;
+		vector<string> moods;
+		std::unordered_map<string, pallet*> pallets;
 
-	// オリジナルのsignalは自ら定義する必要がある
-	signals:
+		inline string setmood(const string &m) noexcept
+		{ return mood = m; }
+		inline string getmood() noexcept
+		{ return mood; }
+		inline void setNowPallet(const pallet &p__) noexcept
+		{ nowPallet = p__; }
 
 	protected:
 		bool eventFilter(QObject *obj, QEvent *event);
+
+	// オリジナルのsignalは自ら定義する必要がある
+	signals:
 
 	// slotsで宣言するとスロットとしても使える
 	private slots:
@@ -149,16 +163,17 @@ class Widget : public QWidget, public Ui::Widget {
 		void goLink();
 
 	private:
+		pallet nowPallet;
 		std::thread thr_dl;
 		QTimer *const LOGt;
 		QTimer *const timer;
-		string logs;
-		const unsigned int msec = 10;
-		std::atomic<bool> ENDDL = false;
-		bool isDrag = false;
 		QPoint offset = QPoint(0, 0);
-		bool hovers = false;
-		bool hovering = false;
+		string logs;
+		string mood;
+		std::atomic<bool> ENDDL = false;
+		std::atomic<bool> isDrag = false;
+		std::atomic<bool> hovering = false;
+		const unsigned int msec = 10;
 };
 
 #endif // EXAMPLE_WIDGET_H_

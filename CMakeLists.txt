@@ -26,7 +26,7 @@ file(GLOB_RECURSE UI_FILES src/*.ui)
 include_directories(src)
 
 if(CMAKE_BUILD_TYPE EQUAL Debug) 
-	set(CMAKE_CXX_FLAGS "-O0 -g -fopenmp -pthread -DDEBUG")
+	set(CMAKE_CXX_FLAGS "-O0 -g3 -fopenmp -pthread -DDEBUG")
 else()
 	set(CMAKE_CXX_FLAGS "-O3 -fopenmp -pthread -mwindows")
 endif()

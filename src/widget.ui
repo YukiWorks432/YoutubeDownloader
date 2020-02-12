@@ -679,8 +679,33 @@
      </font>
     </property>
     <property name="styleSheet">
-     <string notr="true">QPushButton#closeButton{border-image:url(./styles/icons/close.png);}
-QPushButton:hover#closeButton{border-image:url(./styles/icons/close1.png);}</string>
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="flat">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="diaButton">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>10</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>M+ 2p black</family>
+      <pointsize>20</pointsize>
+      <italic>false</italic>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
     </property>
     <property name="text">
      <string/>
@@ -743,6 +768,22 @@ QPushButton:hover#closeButton{border-image:url(./styles/icons/close1.png);}</str
      <bool>true</bool>
     </property>
    </widget>
+  </widget>
+  <widget class="QFrame" name="UiSelect">
+   <property name="geometry">
+    <rect>
+     <x>-360</x>
+     <y>39</y>
+     <width>360</width>
+     <height>421</height>
+    </rect>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
+   </property>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

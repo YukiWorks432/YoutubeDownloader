@@ -11,17 +11,19 @@ void YDR::Download() const {
 		#pragma omp section
 		{
 			std::error_code ec;
-			if (VAA & Video) fs::create_directory(fs::path(outDir + "\\Videos"s), ec);
+			if (VAA & Video) fs::create_directory(fs::path(outDir) / fs::path("Videos"), ec);
 			if (ec) {
 				std::lock_guard<std::mutex> lock(*(ui->mtx));
-				ui->addLOG("error! : "s + ec.message());
+				ui->addLOG("error! : "s + ec.value() + " : "s + ec.message());
+				ui->addLOG("fs::path(outdir) : "_q + fs::path(outDir).string().c_str());
 				errs++;
 			}
 			ec.clear();
-			if (VAA & Audio) fs::create_directory(fs::path(outDir + "\\Audios"s), ec);
+			if (VAA & Audio) fs::create_directory(fs::path(outDir) / fs::path("Audios"), ec);
 			if (ec) {
 				std::lock_guard<std::mutex> lock(*(ui->mtx));
-				ui->addLOG("error! : "s + ec.message());
+				ui->addLOG("error! : "s + ec.value() + " : "s + ec.message());
+				ui->addLOG("fs::path(outdir) : "_q + fs::path(outDir).string().c_str());
 				errs++;
 			}
 		}

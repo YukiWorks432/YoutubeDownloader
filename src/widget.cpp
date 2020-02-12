@@ -3,13 +3,27 @@
 
 const string ACs[] = { "best"s, "wav"s, "flac"s, "aac"s, "mp3"s };
 namespace my{
-	inline bool check(const string &s) noexcept{
-		return ((!s.empty()) && !(s == "#"));
-	}
-
-	inline std::string col (std::string c) {
+	inline std::string col (std::string c) noexcept{
 		if (c[0] != '#') return ("#"s + c);
 		return c;
+	}
+
+
+	QDebug operator<<(QDebug deb, const std::string &s) {
+		return (deb << s.c_str());
+	}
+	QDebug operator<<(QDebug deb, const pallet &p) {
+		deb 	<< "wincolor\t: " 		<< p.wincolor		<< '\n'
+				<< "fracolor\t: " 		<< p.fracolor		<< '\n'
+				<< "textcolor\t: " 		<< p.textcolor		<< '\n'
+				<< "textcolor_h\t: " 	<< p.textcolor_h	<< '\n'
+				<< "textcolor_l\t: "	<< p.textcolor_l	<< '\n'
+				<< "selection\t: " 		<< p.selection		<< '\n'
+				<< "selection-text\t: "	<< p.ST				<< '\n'
+				<< "border_w\t: " 		<< p.border_w		<< '\n'
+				<< "berder_c\t: " 		<< p.border_c		<< '\n'
+				<< "custom\t: " 		<< p.custom 		<< '\n';
+	return deb;
 	}
 
 	inline void setStyle(Widget *ui) {
@@ -38,69 +52,82 @@ namespace my{
 		}
 		
 		picojson::object& cfg_ = sv.get<picojson::object>();
-		string mood = cfg_["mood"].get<string>();
+
+		const auto &moods = cfg_["moods"].get<picojson::array>();
+
+		for (auto &x : moods) {
+			string name = x.get<string>();
+			std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+			if (name == "デフォルト" || name == "deforuto" || name == "default") {
+				ui->moods.push_back(name);
+				continue;
+			}
+			ui->moods.push_back(name);
+
+			auto &cc = cfg_[name].get<picojson::object>();
+			pallet *pal = new pallet();
+			pal->wincolor 	 = col(cc["window"].get<string>());
+			pal->fracolor 	 = col(cc["frame"].get<string>());
+			pal->textcolor 	 = col(cc["text"].get<string>());
+			pal->textcolor_h = col(cc["text-hover"].get<string>());
+			pal->textcolor_l = col(cc["text-link"].get<string>());
+			pal->selection   = col(cc["selection"].get<string>());
+			pal->ST 		 = col(cc["selection-text"].get<string>());
+			pal->border_w 	 = cc["border-w"].get<string>();
+			pal->border_c 	 = col(cc["border-c"].get<string>());
+			const auto &c_ 	 = cc["custom"].get<picojson::array>();
+			for (const auto &i : c_) {
+				pal->custom += i.get<string>();
+			}
+
+			ui->pallets.insert({name, pal});
+		}
+
+		const int id = QFontDatabase::addApplicationFont("./fonts/migmix-1p-bold.ttf");
+		const QString family = QFontDatabase::applicationFontFamilies(id).at(0);
+		const QFont ipagp(family);
+
+		string mood = ui->setmood(cfg_["mood"].get<string>());
 		std::transform(mood.begin(), mood.end(), mood.begin(), ::tolower);
 		if (mood == "default"s || mood == "deforuto"s || mood == "デフォルト"s || mood.empty()) {
 			ui->LOG->setStyleSheet("background-color: #f0f0f0");
 			ui->Frame->setStyleSheet("background-color: #eaeaea");
+			ui->diaButton->setStyleSheet("QPushButton#diaButton{border-image:url(./styles/icons/dialog.png);}"
+										"QPushButton:hover#diaButton{border-image:url(./styles/icons/dialog_h.png);}");
 			ui->addLOG(mood.empty() ? "デフォルト"s : mood + "がセットされました"s);
 			return;
 		}
-		picojson::object& cfg = cfg_[mood].get<picojson::object>();
-		
-		const auto wincolor 	= ui->wincolor 	= col(cfg["window"].get<string>());
-		const auto fracolor 	= ui->fracolor 	= col(cfg["Frame"].get<string>());
-		const auto textcolor 	= ui->textcolor = col(cfg["text"].get<string>());
-		const auto textcolor_h 	= col(cfg["text_hover"].get<string>());
-		if (!textcolor_h.empty()) {
-			ui->dohover();
-			ui->textcolor_h = textcolor_h;
-			ui->addLOG("text_hover" + textcolor_h);
-		}
-		const auto textcolor_l	= col(cfg["text_link"].get<string>());
-		if (!textcolor_l.empty()) {
-			ui->textcolor_l = textcolor_l;
-		}
-		const auto selection 	= ui->selection = col(cfg["selection"].get<string>());
-		const auto ST 			= ui->ST 		= col(cfg["selection-text"].get<string>());
-		const auto border_w		= ui->border_w 	= cfg["boder_w"].get<string>();
-		const auto border_c		= ui->border_c 	= col(cfg["boder_c"].get<string>());
-		const auto &custom_ 	= cfg["custom"].get<picojson::array>();
-		string custom;
-		for (const auto &x : custom_) {
-			custom += x.get<string>();
-		}
-		ui->custom = custom;
-		
+
+		const auto pal = *(ui->pallets.at(mood));
+		ui->setNowPallet(pal);
+
 		string sheet = "QWidget {";
-		if (check(wincolor)) 	sheet += "background-color: " 				+ wincolor 		+ ";";
-		if (check(textcolor)) 	sheet += "color: " 							+ textcolor 	+ ";";
-		if (check(selection)) 	sheet += "selection-background-color: " 	+ selection 	+ ";";
-		if (check(ST)) 			sheet += "selection-color: " 				+ ST 			+ ";";
+		if (!pal.wincolor.empty())		sheet += "background-color: " 			+ pal.wincolor 	+ ";";
+		if (!pal.textcolor.empty()) 	sheet += "color: " 						+ pal.textcolor 	+ ";";
+		if (!pal.selection.empty()) 	sheet += "selection-background-color: " + pal.selection 	+ ";";
+		if (!pal.ST.empty()) 			sheet += "selection-color: " 			+ pal.ST 			+ ";";
 		sheet += "} ";
-		if (check(border_w) && check(border_c)) sheet += "QPushButton, QComboBox {border: " + border_w + " solid " + border_c + ";}";
-		if (!custom.empty()) sheet += custom;
-		
-		const int id = QFontDatabase::addApplicationFont("./fonts/migmix-1p-bold.ttf");
-		const QString family = QFontDatabase::applicationFontFamilies(id).at(0);
-		const QFont ipagp(family);
+		if (!pal.border_w.empty() && !pal.border_c.empty())
+			sheet += "QPushButton, QComboBox {border: " + pal.border_w + " solid " + pal.border_c + ";}";
+		sheet += pal.custom;
 		
 		ui->setStyleSheet(sheet.c_str());
-
-		if (check(fracolor)) ui->Frame->setStyleSheet(("background-color: " + fracolor).c_str());
-		ui->addLOG(mood + " がセットされました");
-
+		if (!pal.fracolor.empty()) ui->Frame->setStyleSheet(("background-color: " + pal.fracolor).c_str());
+	
+		ui->addLOG(ui->getmood() + " がセットされました");
 	}
 }
 
 Widget::Widget(QWidget *parent) : QWidget(parent), mtx(new std::mutex), LOGt(new QTimer), timer(new QTimer) {
 	using namespace std::chrono;
+	auto t = high_resolution_clock::now();
     // setupUiは、UICが生成したクラスに実装されている関数
     // これを呼ぶことでウィジェット内の要素の確保や初期値の設定などをDesignerで設定した値通りの状態にするための処理が行われる
     setupUi(this);
 	setWindowFlag(Qt::FramelessWindowHint);
 	setStyle(QStyleFactory::create("WindowsXP"));
 	
+	closeButton->setStyleSheet("QPushButton#closeButton{border-image:url(./styles/icons/close.png);}QPushButton:hover#closeButton{border-image:url(./styles/icons/close1.png);}");
 	my::setStyle(this);
 
 	addLOG("OpenMP最大スレッド数 : "s + to_string(omp_get_max_threads()));
@@ -111,9 +138,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent), mtx(new std::mutex), LOGt(new
 	ThCheckBox->setChecked(true);
 	ODEntry->setText((fs::current_path() / fs::path("Download")).string().c_str());
 
-	URLlabel->installEventFilter(this);
 	URLEntry->installEventFilter(this);
-	ODlabel->installEventFilter(this);
 	ODEntry->installEventFilter(this);
 
     // シグナルとスロットを接続
@@ -124,6 +149,9 @@ Widget::Widget(QWidget *parent) : QWidget(parent), mtx(new std::mutex), LOGt(new
 	connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
 	connect(LOGt, SIGNAL(timeout()), this, SLOT(updateLOG()));
 	connect(timer, SIGNAL(timeout()), this, SLOT(DownloadEnd()));
+	auto d = to_string(duration_cast<duration<double>>(high_resolution_clock::now() - t).count());
+	addLOG("Start Up Time : "s + d + "s"s);
+	updateLOG();
 }
 
 Widget::~Widget() {
@@ -143,46 +171,47 @@ void Widget::closeEvent(QCloseEvent *e) {
 	}
 }
 
-void Widget::dohover() {
-	this->hovers = true;
-}
-
 bool Widget::eventFilter(QObject *obj, QEvent *event) {
 	const auto type = event->type();
-	if 	(obj == URLEntry && !textcolor_l.empty() && hovering &&
+	if 	(obj == URLEntry && !nowPallet.textcolor_l.empty() && hovering &&
 		(URLEntry->toPlainText().toUtf8().toStdString().find("http://") == 0 || URLEntry->toPlainText().toUtf8().toStdString().find("https://") == 0)) {
 		if (type == QEvent::KeyPress && static_cast<QKeyEvent*>(event)->modifiers() & Qt::ControlModifier) {
-			URLEntry->setStyleSheet("color:"_q + textcolor_l + ";text-decoration: underline solid "_q + textcolor_l);
+			URLEntry->setStyleSheet("color:"_q + nowPallet.textcolor_l + ";text-decoration: underline solid "_q + nowPallet.textcolor_l);
 			return true;
 		}
 		if (type == QEvent::KeyRelease) {
-			URLEntry->setStyleSheet("color:"_q + textcolor);
+			if (hovering) 	URLEntry->setStyleSheet("color:"_q + nowPallet.textcolor_h);
+			else 			URLEntry->setStyleSheet("color:"_q + nowPallet.textcolor);
 		}
 	}
-	if (hovers) {
+	if (!nowPallet.textcolor_h.empty()) {
 		if (type == QEvent::HoverEnter) {
 			hovering = true;
 			if (obj == URLEntry) {
-				URLlabel->setStyleSheet("color:"_q + textcolor_h);
-				URLEntry->setStyleSheet("color:"_q + textcolor_h);
+				if (static_cast<QKeyEvent*>(event)->modifiers() & Qt::ControlModifier) {
+					URLEntry->setStyleSheet("color:"_q + nowPallet.textcolor_l);
+					return true;
+				}
+				URLlabel->setStyleSheet("color:"_q + nowPallet.textcolor_h);
+				URLEntry->setStyleSheet("color:"_q + nowPallet.textcolor_h);
 				return true;
 			}
 			if (obj == ODEntry) {
-				ODlabel->setStyleSheet("color:"_q + textcolor_h);
-				ODEntry->setStyleSheet("color:"_q + textcolor_h);
+				ODlabel->setStyleSheet("color:"_q + nowPallet.textcolor_h);
+				ODEntry->setStyleSheet("color:"_q + nowPallet.textcolor_h);
 				return true;
 			}
 		}
 		if (type == QEvent::HoverLeave) {
 			hovering = false;
 			if (obj == URLEntry) {
-				URLlabel->setStyleSheet("color:"_q + textcolor);
-				URLEntry->setStyleSheet("color:"_q + textcolor);
+				URLlabel->setStyleSheet("color:"_q + nowPallet.textcolor);
+				URLEntry->setStyleSheet("color:"_q + nowPallet.textcolor);
 				return true;
 			}
 			if (obj == ODEntry) {
-				ODlabel->setStyleSheet("color:"_q + textcolor);
-				ODEntry->setStyleSheet("color:"_q + textcolor);
+				ODlabel->setStyleSheet("color:"_q + nowPallet.textcolor);
+				ODEntry->setStyleSheet("color:"_q + nowPallet.textcolor);
 				return true;
 			}
 		}
@@ -193,8 +222,7 @@ bool Widget::eventFilter(QObject *obj, QEvent *event) {
 void Widget::goLink() {
 	string url = URLEntry->toPlainText().toUtf8().toStdString();
 	if (url.find("http://") != 0 && url.find("https://") != 0) return;
-	string r;
-	ShellExecuteA(nullptr, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+	ShellExecuteA((HWND)this->winId(), "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 	updateLOG();
 }
 
@@ -280,7 +308,7 @@ void Widget::ClipPaste() {
 void Widget::SelectDir() {
 	const auto dir = QFileDialog::getExistingDirectory(this, tr("フォルダの選択")).toUtf8().constData();
 	if (string(dir).empty()) return;
-	ODEntry->setText(dir);
+	ODEntry->setText(QString::fromUtf8(dir));
 }
 
 bool Widget::dled() {
