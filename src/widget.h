@@ -34,6 +34,7 @@
 #include <picojson>
 #include <chrono>
 #include "cglob.hpp"
+#include "strconv.hpp"
 using std::cout; using std::wcout; using std::endl;
 using std::array; using std::vector; using std::string; using std::wstring; using std::to_string;
 namespace fs = std::filesystem;
@@ -106,6 +107,12 @@ inline string HexToRGBA(const string &Hex, const int &a) noexcept{
 	return rgba;
 }
 
+inline string get_last_line(const string &s__) noexcept{
+	std::size_t p = s__.find_last_of('\n');
+	if (p == string::npos) 	return s__;
+	else 					return s__.substr(p + 1);
+}
+
 struct pallet {
 	string wincolor;
 	string fracolor;
@@ -116,6 +123,7 @@ struct pallet {
 	string ST;
 	string border_w;
 	string border_c;
+	string qbombobox_hover;
 	string custom;
 };
 
@@ -140,12 +148,19 @@ class Widget : public QWidget, public Ui::Widget {
 		vector<string> moods;
 		std::unordered_map<string, pallet*> pallets;
 
+		inline void lock() noexcept
+		{ mtx->lock(); }
+		inline void unlock() noexcept
+		{ mtx->unlock(); }
 		inline string setmood(const string &m) noexcept
 		{ return mood = m; }
 		inline string getmood() noexcept
 		{ return mood; }
 		inline void setNowPallet(const pallet &p__) noexcept
 		{ nowPallet = p__; }
+		inline void setFFmpeg(const string &ffdir__) noexcept
+		{ ffdir = ffdir__; }
+		
 
 	protected:
 		bool eventFilter(QObject *obj, QEvent *event);
@@ -168,8 +183,9 @@ class Widget : public QWidget, public Ui::Widget {
 		QTimer *const LOGt;
 		QTimer *const timer;
 		QPoint offset = QPoint(0, 0);
-		string logs;
+		std::string logs;
 		string mood;
+		string ffdir;
 		std::atomic<bool> ENDDL = false;
 		std::atomic<bool> isDrag = false;
 		std::atomic<bool> hovering = false;

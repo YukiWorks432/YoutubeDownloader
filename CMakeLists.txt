@@ -32,6 +32,8 @@ else()
 endif()
 
 add_executable(${PROJECT_NAME}
+	${APP_BUNDLE}
+	${APP_ICON}
 	${CPP_FILES}
 	${UI_FILES}
 )

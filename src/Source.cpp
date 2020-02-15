@@ -1,9 +1,10 @@
 #include "Header.hpp"
 
-void YDR::Download() const {
+void YDR::Download() {
 	using namespace Popen;
 	uint errs = 0;
 	string VFs, AFs;
+	string title;
 	// タイトル、フォーマットの取得
 	#pragma omp parallel sections
 	{
@@ -11,20 +12,22 @@ void YDR::Download() const {
 		#pragma omp section
 		{
 			std::error_code ec;
-			if (VAA & Video) fs::create_directory(fs::path(outDir) / fs::path("Videos"), ec);
+			const auto p = outDir / fs::u8path("Videos");
+			if (VAA & Video) fs::create_directory(p, ec);
 			if (ec) {
 				std::lock_guard<std::mutex> lock(*(ui->mtx));
 				ui->addLOG("error! : "s + ec.value() + " : "s + ec.message());
-				ui->addLOG("fs::path(outdir) : "_q + fs::path(outDir).string().c_str());
-				errs++;
+				ui->addLOG("outDir : "s + p.string());
+				++errs;
 			}
 			ec.clear();
-			if (VAA & Audio) fs::create_directory(fs::path(outDir) / fs::path("Audios"), ec);
+			const auto p1 = outDir / fs::u8path("Audios");
+			if (VAA & Audio) fs::create_directory(p1, ec);
 			if (ec) {
 				std::lock_guard<std::mutex> lock(*(ui->mtx));
 				ui->addLOG("error! : "s + ec.value() + " : "s + ec.message());
-				ui->addLOG("fs::path(outdir) : "_q + fs::path(outDir).string().c_str());
-				errs++;
+				ui->addLOG("outDir : "s + p1.string());
+				++errs;
 			}
 		}
 		// タイトル取得
@@ -38,7 +41,10 @@ void YDR::Download() const {
 				++errs;
 			}
 			std::lock_guard lock(*(ui->mtx));
-			ui->addLOG(QString::fromLocal8Bit(buf.c_str()).toStdString());
+			title = QString::fromLocal8Bit(buf.c_str()).toStdString();
+			normalizeTitle(title);
+			ui->addLOG(title);
+			title = utf8_to_sjis(title);
 		}
 		// フォーマット取得
 		#pragma omp section
@@ -72,8 +78,13 @@ void YDR::Download() const {
 		}
 	}
 
-	if (errs) return;
-
+	if (errs) {
+		std::lock_guard lock(*(ui->mtx));
+		ui->addLOG("ダウンロード関数実行失敗");
+		ui->dled();
+		return;
+	}
+	
 	string cmd;
 	string cmd1;
 	// コマンドの作成
@@ -81,86 +92,123 @@ void YDR::Download() const {
 		if (VAA & Video) {
 			cmd 			= "youtube-dl --ffmpeg-location \"" + ffdir + "\" -f " + VFs + " --no-check-certificate --no-part --add-metadata";
 			if (th) cmd 	+= " --write-thumbnail";
-			cmd				+= " --output \"" + outDir + "\\Videos\\%(title)s.%(ext)s\" \"" + URL + "\"";
+			cmd				+= " --output \"" + outDir.string() + "\\Videos\\%(title)s.%(ext)s\" \"" + URL + "\"";
 		}
 		if (VAA & Audio) {
-			cmd1 			= "youtube-dl --ffmpeg-location \"" + ffdir + "\" -f " + AFs + " --no-check-certificate --no-part"
-							" -x --audio-format " + string(AC) + " --audio-quality 0 --postprocessor-args \"-compression_level 12\" --add-metadata ";
+			string af = (AC == "alac"s) ? "" : "--audio-format "+ AC + " --audio-quality 0 --postprocessor-args \"-compression_level 12\" ";
+			cmd1 			= "youtube-dl --ffmpeg-location \"" + ffdir + "\" -f " + AFs + " --no-check-certificate --no-part -x " + af + "--add-metadata ";
 			if (th) cmd1 	+= " --write-thumbnail";
-			cmd1 			+= " --output \"" + outDir + "\\Audios\\%(title)s.%(ext)s\" \"" + URL + "\"";
+			cmd1 			+= " --output \"" + outDir.string() + "\\Audios\\%(title)s.%(ext)s\" \"" + URL + "\"";
 		}
 	}
 
 	SetLastError(0);
 
 	// ダウンロード
-	#pragma omp parallel sections
+	lock();
+	ui->addLOG("ダウンロード開始");
+	unlock();
+	#pragma omp parallel shared(cmd, cmd1, ui)
 	{
-		// 動画ダウンロード
-		#pragma omp section
+		#pragma omp sections
 		{
-			if (!cmd.empty()) {
-				STARTUPINFOA si = {sizeof(STARTUPINFO)};
-				PROCESS_INFORMATION pi = {};
-				DWORD ExCo;
-				BOOL res = CreateProcessA(NULL, const_cast<LPSTR>(cmd.c_str()),  NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
-				if (!res) {
-					wstring r;
-					GLEM(r);
-					std::lock_guard<std::mutex> lock(*(ui->mtx));
-					ui->addLOG("動画ダウンロードプロセス起動失敗"s);
-					ui->addLOG(r);
-					errs++;
-				} else {
-					ExCo = WaitForSingleObject(pi.hProcess, INFINITE);
-					if (ExCo == WAIT_FAILED) {
+			// 動画ダウンロード
+			#pragma omp section
+			{
+				if (!cmd.empty()) {
+					STARTUPINFOA si = {sizeof(STARTUPINFO)};
+					PROCESS_INFORMATION pi = {};
+					DWORD ExCo;
+					BOOL res = CreateProcessA(NULL, const_cast<LPSTR>(cmd.c_str()),  NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+					if (!res) {
 						wstring r;
 						GLEM(r);
 						std::lock_guard<std::mutex> lock(*(ui->mtx));
-						ui->addLOG("動画ダウンロードプロセス実行失敗 : "s);
+						ui->addLOG("動画ダウンロードプロセス起動失敗"s);
 						ui->addLOG(r);
 						errs++;
 					} else {
-						std::lock_guard<std::mutex> lock(*(ui->mtx));
-						ui->addLOG("動画ダウンロードプロセス完了"s);
+						ExCo = WaitForSingleObject(pi.hProcess, INFINITE);
+						if (ExCo == WAIT_FAILED) {
+							wstring r;
+							GLEM(r);
+							std::lock_guard<std::mutex> lock(*(ui->mtx));
+							ui->addLOG("動画ダウンロードプロセス実行失敗 : "s);
+							ui->addLOG(r);
+							errs++;
+						} else {
+							std::lock_guard<std::mutex> lock(*(ui->mtx));
+							ui->addLOG("動画ダウンロードプロセス完了"s);
+						}
 					}
+					CloseHandle(pi.hProcess);
+					CloseHandle(pi.hThread);
 				}
-				CloseHandle(pi.hProcess);
-				CloseHandle(pi.hThread);
+			}
+			// 音声ダウンロード
+			#pragma omp section
+			{
+				if (!cmd1.empty()) {
+					STARTUPINFOA si = {sizeof(STARTUPINFO)};
+					PROCESS_INFORMATION pi = {};
+					DWORD ExCo;
+					BOOL res = CreateProcessA(NULL, const_cast<LPSTR>(cmd1.c_str()),  NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+					if (!res) {
+						wstring r;
+						GLEM(r);
+						std::lock_guard<std::mutex> lock(*(ui->mtx));
+						ui->addLOG("音声ダウンロードプロセス起動失敗"s);
+						ui->addLOG(r);
+						errs++;
+					} else {
+						ExCo = WaitForSingleObject(pi.hProcess, INFINITE);
+						if (ExCo == WAIT_FAILED) {
+							wstring r;
+							GLEM(r);
+							std::lock_guard<std::mutex> lock(*(ui->mtx));
+							ui->addLOG("音声ダウンロードプロセス実行失敗"s);
+							ui->addLOG(r);
+							errs++;
+						} else {
+							std::lock_guard<std::mutex> lock(*(ui->mtx));
+							ui->addLOG("音声ダウンロードプロセス完了"s);
+						}
+					}
+					CloseHandle(pi.hProcess);
+					CloseHandle(pi.hThread);
+				}
 			}
 		}
-		// 音声ダウンロード
-		#pragma omp section
-		{
-			if (!cmd1.empty()) {
-				STARTUPINFOA si = {sizeof(STARTUPINFO)};
-				PROCESS_INFORMATION pi = {};
-				DWORD ExCo;
-				BOOL res = CreateProcessA(NULL, const_cast<LPSTR>(cmd1.c_str()),  NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
-				if (!res) {
-					wstring r;
-					GLEM(r);
-					std::lock_guard<std::mutex> lock(*(ui->mtx));
-					ui->addLOG("音声ダウンロードプロセス起動失敗"s);
-					ui->addLOG(r);
-					errs++;
-				} else {
-					ExCo = WaitForSingleObject(pi.hProcess, INFINITE);
-					if (ExCo == WAIT_FAILED) {
-						wstring r;
-						GLEM(r);
-						std::lock_guard<std::mutex> lock(*(ui->mtx));
-						ui->addLOG("音声ダウンロードプロセス実行失敗"s);
-						ui->addLOG(r);
-						errs++;
-					} else {
-						std::lock_guard<std::mutex> lock(*(ui->mtx));
-						ui->addLOG("音声ダウンロードプロセス完了"s);
-					}
-				}
-				CloseHandle(pi.hProcess);
-				CloseHandle(pi.hThread);
+	}
+
+	if (errs) {
+		std::lock_guard lock(*(ui->mtx));
+		ui->addLOG("ダウンロード関数実行失敗");
+		ui->dled();
+		return;
+	}
+
+	// エンコード
+	if (AC == "alac"s) {
+		lock();
+		ui->addLOG("エンコード開始");
+		unlock();
+		vector<fs::path> wavs;
+		cglob::glob(".opus", wavs, outDir / fs::u8path("Audios"));
+		cglob::glob(".wav", wavs, outDir/ fs::u8path("Audios"));
+		for (const auto &x : wavs) {
+			string cmd2 = ffdir + " -i \"" + utf8_to_sjis(x.string()) + "\" -acodec alac \"" 
+						+ utf8_to_sjis((outDir / fs::path("Audios") / x.stem()).string()) + ".m4a\"";
+			string r;
+
+			if (!Popen::Popen(cmd2, r, Popen::Flags::NoOutput)) {
+				++errs;
 			}
+			lock();
+			ui->addLOG(r);
+			unlock();
+
+			fs::remove(x);
 		}
 	}
 
@@ -169,7 +217,7 @@ void YDR::Download() const {
 		ui->dled();
 		return;
 	}
-
+	
 	// 一時ファイルから外へ
 	#pragma omp parallel sections
 	{
@@ -177,7 +225,7 @@ void YDR::Download() const {
 		#pragma omp section
 		{
 			vector<fs::path> ps;
-			if (cglob::glob("\\Videos\\"s, ps, fs::path(outDir))) {
+			if (cglob::glob("\\Videos\\"s, ps, outDir)) {
 				for (const auto& x : ps) {
 					std::error_code ec;
 					if (x.empty()) {
@@ -185,7 +233,7 @@ void YDR::Download() const {
 						ui->addLOG("Empty"s);
 						continue;
 					}
-					fs::path np = fs::path(outDir) / x.filename();
+					fs::path np = outDir / x.filename();
 					fs::rename(x, np, ec);
 					if (ec.value() != 0 && ec.value() != 17) {
 						std::lock_guard<std::mutex> lock(*(ui->mtx));
@@ -195,7 +243,7 @@ void YDR::Download() const {
 					}
 				}
 				std::error_code ec;
-				fs::path dd = fs::path(outDir) / fs::path("Videos"s);
+				fs::path dd = outDir / fs::path("Videos"s);
 				fs::remove_all(dd, ec);
 				if (ec) {
 					std::lock_guard<std::mutex> lock(*(ui->mtx));
@@ -209,16 +257,16 @@ void YDR::Download() const {
 		#pragma omp section
 		{
 			vector<fs::path> ps;
-			if (cglob::glob("\\Audios\\"s, ps, fs::path(outDir))) {
+			if (cglob::glob("\\Audios\\"s, ps, outDir)) {
 				for (const auto& x : ps) {
 					std::error_code ec;
 					if (x.empty()) {
-						ui->mtx->lock();
+						lock();
 						ui->addLOG("Empty"s);
-						ui->mtx->unlock();
+						unlock();
 						continue;
 					}
-					fs::path np = fs::path(outDir) / x.filename();
+					fs::path np = outDir / x.filename();
 					fs::rename(x, np, ec);
 					if (ec.value() != 0 && ec.value() != 17) {
 						std::lock_guard<std::mutex> lock(*(ui->mtx));
@@ -228,7 +276,7 @@ void YDR::Download() const {
 					}
 				}
 				std::error_code ec;
-				fs::path dd = fs::path(outDir) / fs::path("Audios"s);
+				fs::path dd = outDir / fs::path("Audios"s);
 				fs::remove_all(dd, ec);
 				if (ec) {
 					std::lock_guard<std::mutex> lock(*(ui->mtx));
@@ -240,9 +288,19 @@ void YDR::Download() const {
 		}
 	}
 
-	if (errs) return;
+	if (errs) {
+		std::lock_guard lock(*(ui->mtx));
+		ui->addLOG("ダウンロード関数実行失敗");
+		ui->dled();
+		return;
+	}
 
+	ui->addLOG("ダウンロード終了");
+
+	lock();
 	ui->dled();
+	unlock();
+
 	if (ex) exit(0);
 	return;
 }

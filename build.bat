@@ -2,7 +2,6 @@
 set app=YoutubeDownloader
 set Reset=1
 set type=Release
-set comp=1
 cd build
 if %Reset%==1 (
     rm -rf *
@@ -25,17 +24,12 @@ if %Reset%==1 (
 )
 rsync -a ../ ./ --exclude "/%app%/"
 Python ./copydll.py %app%.exe
-rm -rf ./copydll.py ./ldd.py ./%app%.zip ./styles/icons/icons.ai ./styles/icons/scifi/ais
+rm -rf ./copydll.py ./ldd.py ./%app%.zip ./%app%_install.exe ./styles/icons/icons.ai ./styles/icons/scifi/ais
 
 if %type%==Debug (
     gdb %app%.exe
-    cd ../
-) else (
-    cd ../
-    if %comp%==1 (
-    PowerShell Compress-Archive -CompressionLevel Fastest -Update -Path ./%app% -DestinationPath ./%app%.zip > nul
-    )
 )
+cd ../
 rm -f %app%.exe
 cd ./%app%-src
 exit /b

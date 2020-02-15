@@ -6,11 +6,15 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
-#include "strconv.h"
+#include "strconv.hpp"
 using std::string;using std::wstring;using std::cout;using std::endl;using std::to_string;
 using namespace std::literals::string_literals;
 
 namespace Popen{
+	enum Flags{
+		Default 	= 0b0001,
+		NoOutput 	= 0b0010,
+	};
 	inline void GLEM(wstring &result) noexcept{
 		auto Er = GetLastError();
 		cout << Er << endl;
@@ -39,7 +43,7 @@ namespace Popen{
 		LocalFree(buf);
 		return;
 	}
-	inline bool Popen(const string &command, string &result) noexcept{
+	inline bool Popen(const string &command, string &result, const unsigned int flag = Flags::Default) noexcept{
 		SetLastError(0);
 		SECURITY_ATTRIBUTES sa;
 		HANDLE read, write;
@@ -53,11 +57,13 @@ namespace Popen{
 		sa.bInheritHandle = TRUE;
 		sa.lpSecurityDescriptor = NULL;
 
-		if (!CreatePipe(&read, &write, &sa, 0)) {
-			string r;
-			GLEM(r);
-			result = "Failed CreatePipe() : "s + r;
-			return false;
+		if (flag != Flags::NoOutput) {
+			if (!CreatePipe(&read, &write, &sa, 0)) {
+				string r;
+				GLEM(r);
+				result = "Failed CreatePipe() : "s + r;
+				return false;
+			}
 		}
 
 		STARTUPINFO si = {};
@@ -65,8 +71,10 @@ namespace Popen{
 		si.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
 		si.wShowWindow = SW_HIDE;
 		si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
-		si.hStdOutput = write;
-		si.hStdError = write;
+		if (flag != Flags::NoOutput) {
+			si.hStdOutput = write;
+			si.hStdError = write;
+		}
 
 		if (si.hStdOutput == INVALID_HANDLE_VALUE || si.hStdError == INVALID_HANDLE_VALUE) {
 			result = "Failed Get Handle"s;
@@ -94,24 +102,26 @@ namespace Popen{
 			result = "Failed WaitForSingleObject : "s + r;
 			return false;
 		}
-		if (!CloseHandle(write)) {
-			string r;
-			GLEM(r);
-			result = "Failed CloseHandle : "s + r;
-			return false;
-		}
+		if (flag != Flags::NoOutput) {
+			if (!CloseHandle(write)) {
+				string r;
+				GLEM(r);
+				result = "Failed CloseHandle : "s + r;
+				return false;
+			}
 
-		std::array<char, 1280> buf;
-		DWORD rlen = 0;
-		while (ReadFile(read, buf.data(), buf.size(), &rlen, NULL)) {
-			std::copy(buf.begin(), buf.begin() + rlen, std::back_inserter(result));
-		}
+			std::array<char, 1280> buf;
+			DWORD rlen = 0;
+			while (ReadFile(read, buf.data(), buf.size(), &rlen, NULL)) {
+				std::copy(buf.begin(), buf.begin() + rlen, std::back_inserter(result));
+			}
 
-		if (!CloseHandle(read)) {
-			string r;
-			GLEM(r);
-			result = "Failed CloseHandle(read)"s + r;
-			return false;
+			if (!CloseHandle(read)) {
+				string r;
+				GLEM(r);
+				result = "Failed CloseHandle(read)"s + r;
+				return false;
+			}
 		}
 
 		return true;

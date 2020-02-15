@@ -1,7 +1,7 @@
 /* strconv.h v1.0.0                */
 /* Last Modified: 2019/02/27 23:23 */
-#ifndef STRCONV_H
-#define STRCONV_H
+#ifndef STRCONV_HPP
+#define STRCONV_HPP
 
 #include <windows.h>
 #include <string>

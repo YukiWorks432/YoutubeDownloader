@@ -1,7 +1,7 @@
 #include "widget.h"
 #include "Header.hpp"
 
-const string ACs[] = { "best"s, "wav"s, "flac"s, "aac"s, "mp3"s };
+const string ACs[] = { "best"s, "wav"s, "flac"s, "alac"s, "aac"s, "mp3"s };
 namespace my{
 	inline std::string col (std::string c) noexcept{
 		if (c[0] != '#') return ("#"s + c);
@@ -37,7 +37,6 @@ namespace my{
 		const string json((std::istreambuf_iterator<char>(fs)), std::istreambuf_iterator<char>());
 		
 		fs.close();
-		
 		if (json.empty()) {
 			ui->addLOG("style.jsonの中が空です"s);
 			return;
@@ -57,7 +56,7 @@ namespace my{
 
 		for (auto &x : moods) {
 			string name = x.get<string>();
-			std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+			
 			if (name == "デフォルト" || name == "deforuto" || name == "default") {
 				ui->moods.push_back(name);
 				continue;
@@ -75,6 +74,7 @@ namespace my{
 			pal->ST 		 = col(cc["selection-text"].get<string>());
 			pal->border_w 	 = cc["border-w"].get<string>();
 			pal->border_c 	 = col(cc["border-c"].get<string>());
+			pal->qbombobox_hover = cc["qcombobox-hover"].get<string>();
 			const auto &c_ 	 = cc["custom"].get<picojson::array>();
 			for (const auto &i : c_) {
 				pal->custom += i.get<string>();
@@ -129,7 +129,15 @@ Widget::Widget(QWidget *parent) : QWidget(parent), mtx(new std::mutex), LOGt(new
 	
 	closeButton->setStyleSheet("QPushButton#closeButton{border-image:url(./styles/icons/close.png);}QPushButton:hover#closeButton{border-image:url(./styles/icons/close1.png);}");
 	my::setStyle(this);
+	
+	vector<fs::path> p;
+	if (!cglob::glob("\\bin\\ffmpeg.exe", p)) {
+		LOG->setText("ffmpegにアクセスできませんでした。アクセス権限を確認してください。");
+		return;
+	}
+	ffdir = utf8_to_sjis(p[0].generic_string());
 
+	addLOG("FFmpeg : "s + p[0].generic_string());
 	addLOG("OpenMP最大スレッド数 : "s + to_string(omp_get_max_threads()));
 	updateLOG();
 
@@ -140,6 +148,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent), mtx(new std::mutex), LOGt(new
 
 	URLEntry->installEventFilter(this);
 	ODEntry->installEventFilter(this);
+	ACCombo->installEventFilter(this);
 
     // シグナルとスロットを接続
 	connect(URLEntry, SIGNAL(rightClicked()), this, SLOT(ClipPaste()));
@@ -216,6 +225,16 @@ bool Widget::eventFilter(QObject *obj, QEvent *event) {
 			}
 		}
 	}
+	if (obj == ACCombo && !nowPallet.qbombobox_hover.empty()) {
+		if (type == QEvent::HoverEnter)	{
+			ACCombo->setStyleSheet(nowPallet.qbombobox_hover.c_str());
+			updateLOG();
+		}
+		if (type == QEvent::HoverLeave) {
+			ACCombo->setStyleSheet("");
+			updateLOG();
+		}
+	}
 	return false;
 }
 
@@ -245,50 +264,24 @@ void Widget::mouseMoveEvent(QMouseEvent *e) {
 
 void Widget::addLOG(string s) {
 	if (logs.empty()) {
-		logs += normalize(s);
+		logs = normalize(s);
 		return;
 	}
-	string ltmp;
-	logs.copy(ltmp.data(), logs.rfind('\n') != string::npos ? logs.rfind('\n') : 0, logs.length());
+	string ltmp = get_last_line(logs);
 	if (ltmp.find(s) == string::npos) {
 		logs += "\n"s + normalize(s);
 	}
 }
 void Widget::addLOG(wstring ws) {
 	string s = wide_to_utf8(ws);
-	if (logs.empty()) {
-		logs += normalize(s);
-		return;
-	}
-	string ltmp;
-	logs.copy(ltmp.data(), logs.rfind('\n') != string::npos ? logs.rfind('\n') : 0, logs.length());
-	if (ltmp.find(s) == string::npos) {
-		logs += "\n"s + normalize(s);
-	}
+	addLOG(s);
 }
 void Widget::addLOG(QString qs) {
 	string s = qs.toStdString();
-	if (logs.empty()) {
-		logs += normalize(s);
-		return;
-	}
-	string ltmp;
-	logs.copy(ltmp.data(), logs.rfind('\n') != string::npos ? logs.rfind('\n') : 0, logs.length());
-	if (ltmp.find(s) == string::npos) {
-		logs += "\n"s + normalize(s);
-	}
+	addLOG(s);
 }
 void Widget::addLOG(const char* s) {
-	string text(s);
-	if (logs.empty()) {
-		logs += normalize(text);
-		return;
-	}
-	string ltmp;
-	logs.copy(ltmp.data(), logs.rfind('\n') != string::npos ? logs.rfind('\n') : 0, logs.length());
-	if (ltmp.find(text) == string::npos) {
-		logs += "\n"s + normalize(text);
-	}
+	addLOG(string(s));
 }
 
 void Widget::updateLOG() {
@@ -324,7 +317,7 @@ void Widget::DownloadEnd() {
 	updateLOG();
 }
 
-void dl(Widget *const iui, const string iURL, const string ioutDir, const string iffdir, const uint8_t iVAA, const char *const iAC, const bool ith, const bool iex) noexcept{
+void dl(Widget *const iui, const string iURL, const fs::path ioutDir, const string iffdir, const uint8_t iVAA, const string iAC, const bool ith, const bool iex) noexcept{
 	YDR proc(iui, iURL, ioutDir, iffdir, iVAA, iAC, ith, iex);
 	proc.Download();
 	return;
@@ -348,7 +341,7 @@ void Widget::Download() {
 	delList(url);
 	URLEntry->setText(url.c_str());
 
-	const string od = ODEntry->toPlainText().toUtf8().toStdString();
+	string od = ODEntry->toPlainText().toStdString();
 	if (od.empty()) {
 		LOG->setText("空白を埋めてください");
 		return;
@@ -358,20 +351,13 @@ void Widget::Download() {
 		return;
 	}
 
-	vector<fs::path> p;
-	if (!cglob::glob("\\bin\\ffmpeg.exe", p)) {
-		LOG->setText("ffmpegにアクセスできませんでした。アクセス権限を確認してください。");
-		return;
-	}
-	const string ffdir = p[0].string();
-
 	const uint8_t VAA = (VCB->checkState() == Qt::Checked ? YDR::Video : 0) | (ACB->checkState() == Qt::Checked ? YDR::Audio : 0);
 	if (VAA == 0) {
 		LOG->setText("動画か音声か、\n一つは選択してください(複数可)");
 		return;
 	}
 	
-	const char *ac = ACs[ACCombo->currentIndex()].c_str();
+	const string ac = ACs[ACCombo->currentIndex()];
 
 	const bool th = ThCheckBox->checkState() == Qt::Checked;
 	
@@ -380,6 +366,6 @@ void Widget::Download() {
 	timer->start(msec);
 	LOGt->start(msec);
 
-	thr_dl = std::thread(dl, this, url, od, ffdir, VAA, ac, th, ex);
+	thr_dl = std::thread(dl, this, url, fs::path(od), ffdir, VAA, ac, th, ex);
 	return;
 }
