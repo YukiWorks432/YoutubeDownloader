@@ -16,11 +16,13 @@ namespace cglob {
 		if (!sp.empty()) {
 			for (const auto &x : fs::recursive_directory_iterator(dir)) {
 				fs::path p = x.path();
+				p.make_preferred();
 				if ((!p.empty()) && (p.string().find(sp) != string::npos)) 	paths.push_back(p);
 			}
 		} else {
 			for (const auto &x : fs::recursive_directory_iterator(dir)) {
 				fs::path p = x.path();
+				p.make_preferred();
 				if (!p.empty()) 	paths.push_back(p);
 			}
 		}

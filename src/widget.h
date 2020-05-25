@@ -1,5 +1,5 @@
-#ifndef EXSAMPLE_WIDGET_H_
-#define EXSAMPLE_WIDGET_H_
+#ifndef YDR_WIDGET_H_
+#define YDR_WIDGET_H_
 
 #include "ui_widget.h"
 #include <QtWidgets/QWidget>
@@ -12,10 +12,13 @@
 #include <QtCore/QtCore>
 #include <QtCore/QProcess>
 #include <QtCore/QThread>
+#include <QtCore/QTextCodec>
 #include <QtCore/QPropertyAnimation>
 #include <QtCore/QAbstractAnimation>
 #include <QtGui/QtGui>
 #include <QtGui/QClipboard>
+#include <QtGui/QFont>
+#include <QtGui/QFontDatabase>
 #include <algorithm>
 #include <thread>
 #include <mutex>
@@ -142,7 +145,11 @@ class Widget : public QWidget, public Ui::Widget {
 		void addLOG(string s);
 		void addLOG(wstring ws);
 		void addLOG(QString qs);
-		void addLOG(const char* s);
+		void addLOG(const char* cs);
+		void addLOGasis(const string s);
+		void addLOGasis(const wstring ws);
+		void addLOGasis(const QString qs);
+		void addLOGasis(const char* cs);
 		bool dled();
 		std::mutex *const mtx;
 		vector<string> moods;

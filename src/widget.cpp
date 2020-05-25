@@ -83,10 +83,6 @@ namespace my{
 			ui->pallets.insert({name, pal});
 		}
 
-		const int id = QFontDatabase::addApplicationFont("./fonts/migmix-1p-bold.ttf");
-		const QString family = QFontDatabase::applicationFontFamilies(id).at(0);
-		const QFont ipagp(family);
-
 		string mood = ui->setmood(cfg_["mood"].get<string>());
 		std::transform(mood.begin(), mood.end(), mood.begin(), ::tolower);
 		if (mood == "default"s || mood == "deforuto"s || mood == "デフォルト"s || mood.empty()) {
@@ -228,11 +224,14 @@ bool Widget::eventFilter(QObject *obj, QEvent *event) {
 	if (obj == ACCombo && !nowPallet.qbombobox_hover.empty()) {
 		if (type == QEvent::HoverEnter)	{
 			ACCombo->setStyleSheet(nowPallet.qbombobox_hover.c_str());
-			updateLOG();
 		}
 		if (type == QEvent::HoverLeave) {
 			ACCombo->setStyleSheet("");
-			updateLOG();
+		}
+	}
+	if (type == QEvent::WhatsThisClicked) {
+		if (obj != ACCombo) {
+			ACCombo->setStyleSheet("");
 		}
 	}
 	return false;
@@ -280,8 +279,23 @@ void Widget::addLOG(QString qs) {
 	string s = qs.toStdString();
 	addLOG(s);
 }
-void Widget::addLOG(const char* s) {
-	addLOG(string(s));
+void Widget::addLOG(const char* cs) {
+	addLOG(string(cs));
+}
+void Widget::addLOGasis(const string s) {
+	logs += s;
+}
+void Widget::addLOGasis(const wstring ws) {
+	string s = wide_to_utf8(ws);
+	logs += s;
+}
+void Widget::addLOGasis(const QString qs) {
+	string s = qs.toStdString();
+	logs += s;	
+}
+void Widget::addLOGasis(const char* cs) {
+	string s = string(cs);
+	logs += s;
 }
 
 void Widget::updateLOG() {

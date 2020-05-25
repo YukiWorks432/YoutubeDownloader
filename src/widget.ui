@@ -59,7 +59,7 @@
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>
   </property>
-  <widget class="QFrame" name="URLFrame">
+  <widget class="MYFrame" name="URLFrame">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -158,7 +158,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="QFrame" name="DLFrame">
+  <widget class="MYFrame" name="DLFrame">
    <property name="geometry">
     <rect>
      <x>700</x>
@@ -272,7 +272,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="QFrame" name="VorA">
+  <widget class="MYFrame" name="VorA">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -365,7 +365,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="QFrame" name="OutDirFrame">
+  <widget class="MYFrame" name="OutDirFrame">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -517,7 +517,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="QFrame" name="ACCs">
+  <widget class="MYFrame" name="ACCs">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -646,7 +646,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="QFrame" name="Frame">
+  <widget class="MYFrame" name="Frame">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -717,7 +717,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="QFrame" name="LOGFrame">
+  <widget class="MYFrame" name="LOGFrame">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -771,7 +771,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="QFrame" name="UiSelect">
+  <widget class="MYFrame" name="UiSelect">
    <property name="geometry">
     <rect>
      <x>-360</x>
@@ -794,6 +794,12 @@
    <class>MYTextEdit</class>
    <extends>QTextEdit</extends>
    <header>mytextedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>MYFrame</class>
+   <extends>QFrame</extends>
+   <header>myframe.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -4,9 +4,9 @@ void YDR::Download() {
 	using namespace Popen;
 	uint errs = 0;
 	string VFs, AFs;
-	string title;
+	vector<string> VFv, AFv;
 	// タイトル、フォーマットの取得
-	#pragma omp parallel sections
+	#pragma omp parallel sections shared(errs)
 	{
 		// VideosディレクトリとAudiosディレクトリの作成
 		#pragma omp section
@@ -33,18 +33,32 @@ void YDR::Download() {
 		// タイトル取得
 		#pragma omp section
 		{
-			string buf;
-			const string cmd = "youtube-dl -e "s + URL;
-			if (!Popen::Popen(cmd, buf)) {
+			if (URL.find("playlist") == string::npos) {
+				string buf;
+				const string cmd = "youtube-dl -e "s + URL;
+				if (!Popen::Popen(cmd, buf)) {
+					std::lock_guard lock(*(ui->mtx));
+					ui->addLOG("タイトル取得失敗"s);
+					++errs;
+				}
+				string title = QString::fromLocal8Bit(buf.c_str()).toStdString();
+				normalizeTitle(title);
 				std::lock_guard lock(*(ui->mtx));
-				ui->addLOG("タイトル取得失敗"s);
-				++errs;
+				ui->addLOG(title);
+			} else {
+				string buf;
+				const string cmd = "youtube-dl -e"s + URL;
+				if (!Popen::Popen(cmd, buf)) {
+					std::lock_guard lock(*(ui->mtx));
+					ui->addLOG("タイトル取得失敗");
+					++errs;
+				}
+				for (const auto &t : split(buf, '\n')) {
+					lock();
+					ui->addLOG(t);
+					unlock();
+				}
 			}
-			std::lock_guard lock(*(ui->mtx));
-			title = QString::fromLocal8Bit(buf.c_str()).toStdString();
-			normalizeTitle(title);
-			ui->addLOG(title);
-			title = utf8_to_sjis(title);
 		}
 		// フォーマット取得
 		#pragma omp section
@@ -335,13 +349,29 @@ inline void opening(Widget *ui) {
 
 int main(int argc, char **argv) {
 	SetConsoleOutputCP(CP_UTF8);
-	setvbuf(stdout, nullptr, _IOFBF, size_t(2560));
+	setvbuf(stdout, nullptr, _IOFBF, size_t(1024 * 1024));
 
     // mainの最初でQApplicationを作っておく
     QApplication app(argc, argv);
+	
+	QFont uifont;
+	vector<fs::path> paths;
+	if (cglob::glob("migmix-1p-bold.ttf", paths)) {
+		for (const auto &fpaths : paths) {
+			qDebug() << QString(fpaths.string().c_str());
+		}
+		const QString fontpath = paths[0].string().c_str();
+		const int id = QFontDatabase::addApplicationFont(fontpath);
+		qDebug() << id;
+		const QString family = QFontDatabase::applicationFontFamilies(id).at(0);
+		qDebug() << family;
+		uifont = QFont(family);
+		app.setFont(uifont);
+	}
 
     // 自作のWidgetクラスを生成、表示
     Widget *widget = new Widget;
+	widget->setFont(uifont);
     widget->show();
 	opening(widget);
 

@@ -110,7 +110,7 @@ namespace Popen{
 				return false;
 			}
 
-			std::array<char, 1280> buf;
+			std::array<char, 1024*1024> buf;
 			DWORD rlen = 0;
 			while (ReadFile(read, buf.data(), buf.size(), &rlen, NULL)) {
 				std::copy(buf.begin(), buf.begin() + rlen, std::back_inserter(result));

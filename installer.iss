@@ -34,9 +34,6 @@ ArchitecturesAllowed=x64
 ; 64-bit Program Files directory and the 64-bit view of the registry.
 ArchitecturesInstallIn64BitMode=x64
 
-[Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}";
-
 [Files]
 Source: "*";                            DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "Readme.txt";                   DestDir: "{app}"; Flags: isreadme
