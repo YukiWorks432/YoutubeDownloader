@@ -3,6 +3,8 @@
 void YDR::Download() {
 	using namespace Popen;
 	uint errs = 0;
+	string title;
+	string code;
 	string VFs, AFs;
 	vector<string> VFv, AFv;
 	// タイトル、フォーマットの取得
@@ -41,7 +43,7 @@ void YDR::Download() {
 					ui->addLOG("タイトル取得失敗"s);
 					++errs;
 				}
-				string title = QString::fromLocal8Bit(buf.c_str()).toStdString();
+				title = QString::fromLocal8Bit(buf.c_str()).toStdString();
 				normalizeTitle(title);
 				std::lock_guard lock(*(ui->mtx));
 				ui->addLOG(title);
@@ -59,6 +61,17 @@ void YDR::Download() {
 					unlock();
 				}
 			}
+		}
+		// ID取得
+		#pragma omp section
+		{
+			const string cmd = "youtube-dl --get-id " + URL;
+			if (!Popen::Popen(cmd, code)) {
+				std::lock_guard lock(*(ui->mtx));
+				ui->addLOG("ID取得失敗");
+				++errs;
+			}
+			normalizeTitle(code);
 		}
 		// フォーマット取得
 		#pragma omp section
@@ -86,6 +99,7 @@ void YDR::Download() {
 			} else {
 				std::lock_guard<std::mutex> lock(*(ui->mtx));
 				ui->addLOG("フォーマット取得失敗 at : Format no match"s);
+				ui->addLOG(buf);
 				ui->dled();
 				errs++;
 			}
@@ -104,15 +118,16 @@ void YDR::Download() {
 	// コマンドの作成
 	{
 		if (VAA & Video) {
-			cmd 			= "youtube-dl --ffmpeg-location \"" + ffdir + "\" -f " + VFs + " --no-check-certificate --no-part --add-metadata";
+			cmd 			= "youtube-dl --prefer-ffmpeg --ffmpeg-location \"" + ffdir + "\" -f " + VFs
+							+ " --no-check-certificate --no-part --write-info-json";
 			if (th) cmd 	+= " --write-thumbnail";
-			cmd				+= " --output \"" + outDir.string() + "\\Videos\\%(title)s.%(ext)s\" \"" + URL + "\"";
+			cmd				+= " --output \"" + outDir.string() + "\\Videos\\" + code + ".%(ext)s\" \"" + URL + "\"";
 		}
 		if (VAA & Audio) {
-			string af = (AC == "alac"s) ? "" : "--audio-format "+ AC + " --audio-quality 0 --postprocessor-args \"-compression_level 12\" ";
-			cmd1 			= "youtube-dl --ffmpeg-location \"" + ffdir + "\" -f " + AFs + " --no-check-certificate --no-part -x " + af + "--add-metadata ";
+			cmd1 			= "youtube-dl --prefer-ffmpeg --ffmpeg-location \"" + ffdir + "\" -f " + AFs
+							+ " --no-check-certificate --no-part -x --write-info-json";
 			if (th) cmd1 	+= " --write-thumbnail";
-			cmd1 			+= " --output \"" + outDir.string() + "\\Audios\\%(title)s.%(ext)s\" \"" + URL + "\"";
+			cmd1 			+= " --output \"" + outDir.string() + "\\Audios\\" + code + ".%(ext)s\" \"" + URL + "\"";
 		}
 	}
 
@@ -122,75 +137,72 @@ void YDR::Download() {
 	lock();
 	ui->addLOG("ダウンロード開始");
 	unlock();
-	#pragma omp parallel shared(cmd, cmd1, ui)
+	#pragma omp parallel sections shared(cmd, cmd1, ui)
 	{
-		#pragma omp sections
+		// 動画ダウンロード
+		#pragma omp section
 		{
-			// 動画ダウンロード
-			#pragma omp section
-			{
-				if (!cmd.empty()) {
-					STARTUPINFOA si = {sizeof(STARTUPINFO)};
-					PROCESS_INFORMATION pi = {};
-					DWORD ExCo;
-					BOOL res = CreateProcessA(NULL, const_cast<LPSTR>(cmd.c_str()),  NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
-					if (!res) {
+			if (!cmd.empty()) {
+				STARTUPINFOA si = {sizeof(STARTUPINFO)};
+				PROCESS_INFORMATION pi = {};
+				DWORD ExCo;
+				BOOL res = CreateProcessA(NULL, const_cast<LPSTR>(utf8_to_sjis(cmd).c_str()),  NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+				if (!res) {
+					wstring r;
+					GLEM(r);
+					std::lock_guard<std::mutex> lock(*(ui->mtx));
+					ui->addLOG("動画ダウンロードプロセス起動失敗"s);
+					ui->addLOG(r);
+					errs++;
+				} else {
+					ExCo = WaitForSingleObject(pi.hProcess, INFINITE);
+					if (ExCo == WAIT_FAILED) {
 						wstring r;
 						GLEM(r);
 						std::lock_guard<std::mutex> lock(*(ui->mtx));
-						ui->addLOG("動画ダウンロードプロセス起動失敗"s);
+						ui->addLOG("動画ダウンロードプロセス実行失敗 : "s);
 						ui->addLOG(r);
 						errs++;
 					} else {
-						ExCo = WaitForSingleObject(pi.hProcess, INFINITE);
-						if (ExCo == WAIT_FAILED) {
-							wstring r;
-							GLEM(r);
-							std::lock_guard<std::mutex> lock(*(ui->mtx));
-							ui->addLOG("動画ダウンロードプロセス実行失敗 : "s);
-							ui->addLOG(r);
-							errs++;
-						} else {
-							std::lock_guard<std::mutex> lock(*(ui->mtx));
-							ui->addLOG("動画ダウンロードプロセス完了"s);
-						}
+						std::lock_guard<std::mutex> lock(*(ui->mtx));
+						ui->addLOG("動画ダウンロードプロセス完了"s);
 					}
-					CloseHandle(pi.hProcess);
-					CloseHandle(pi.hThread);
 				}
+				CloseHandle(pi.hProcess);
+				CloseHandle(pi.hThread);
 			}
-			// 音声ダウンロード
-			#pragma omp section
-			{
-				if (!cmd1.empty()) {
-					STARTUPINFOA si = {sizeof(STARTUPINFO)};
-					PROCESS_INFORMATION pi = {};
-					DWORD ExCo;
-					BOOL res = CreateProcessA(NULL, const_cast<LPSTR>(cmd1.c_str()),  NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
-					if (!res) {
+		}
+		// 音声ダウンロード
+		#pragma omp section
+		{
+			if (!cmd1.empty()) {
+				STARTUPINFOA si = {sizeof(STARTUPINFO)};
+				PROCESS_INFORMATION pi = {};
+				DWORD ExCo;
+				BOOL res = CreateProcessA(NULL, const_cast<LPSTR>(utf8_to_sjis(cmd1).c_str()),  NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
+				if (!res) {
+					wstring r;
+					GLEM(r);
+					std::lock_guard<std::mutex> lock(*(ui->mtx));
+					ui->addLOG("音声ダウンロードプロセス起動失敗"s);
+					ui->addLOG(r);
+					errs++;
+				} else {
+					ExCo = WaitForSingleObject(pi.hProcess, INFINITE);
+					if (ExCo == WAIT_FAILED) {
 						wstring r;
 						GLEM(r);
 						std::lock_guard<std::mutex> lock(*(ui->mtx));
-						ui->addLOG("音声ダウンロードプロセス起動失敗"s);
+						ui->addLOG("音声ダウンロードプロセス実行失敗"s);
 						ui->addLOG(r);
 						errs++;
 					} else {
-						ExCo = WaitForSingleObject(pi.hProcess, INFINITE);
-						if (ExCo == WAIT_FAILED) {
-							wstring r;
-							GLEM(r);
-							std::lock_guard<std::mutex> lock(*(ui->mtx));
-							ui->addLOG("音声ダウンロードプロセス実行失敗"s);
-							ui->addLOG(r);
-							errs++;
-						} else {
-							std::lock_guard<std::mutex> lock(*(ui->mtx));
-							ui->addLOG("音声ダウンロードプロセス完了"s);
-						}
+						std::lock_guard<std::mutex> lock(*(ui->mtx));
+						ui->addLOG("音声ダウンロードプロセス完了"s);
 					}
-					CloseHandle(pi.hProcess);
-					CloseHandle(pi.hThread);
 				}
+				CloseHandle(pi.hProcess);
+				CloseHandle(pi.hThread);
 			}
 		}
 	}
@@ -203,26 +215,128 @@ void YDR::Download() {
 	}
 
 	// エンコード
-	if (AC == "alac"s) {
+	if ((VAA & Audio) && (AC != ACs::best)) {
 		lock();
 		ui->addLOG("エンコード開始");
 		unlock();
-		vector<fs::path> wavs;
-		cglob::glob(".opus", wavs, outDir / fs::u8path("Audios"));
-		cglob::glob(".wav", wavs, outDir/ fs::u8path("Audios"));
-		for (const auto &x : wavs) {
-			string cmd2 = ffdir + " -i \"" + utf8_to_sjis(x.string()) + "\" -acodec alac \"" 
-						+ utf8_to_sjis((outDir / fs::path("Audios") / x.stem()).string()) + ".m4a\"";
-			string r;
-
-			if (!Popen::Popen(cmd2, r, Popen::Flags::NoOutput)) {
-				++errs;
+		const auto cpath = outDir / fs::u8path("Audios");
+		vector<fs::path> wavs(1);
+		cglob::glob(".opus", wavs, cpath);
+		cglob::glob(".wav", wavs, cpath);
+		cglob::glob(".webm", wavs, cpath);
+		unordered_map<string, fs::path> thumbpass(1);
+		if (th) {
+			for (const auto &x : wavs) {
+				vector<fs::path> tmp;
+				if (cglob::glob(x.stem().generic_string() + ".jpg", tmp, cpath)) {
+					thumbpass.emplace(x.stem().generic_string(), tmp[0]);
+				}
 			}
-			lock();
-			ui->addLOG(r);
-			unlock();
+		}
+		string acodec;
+		string format;
+		string exp;
+		switch (AC) {
+			case ACs::wav:
+				acodec = "-c:a pcm_s16le";
+				exp = "wav";
+				break;
+			case ACs::flac:
+				acodec = "-c:a flac -compression_level 12";
+				exp = "flac";
+				break;
+			case ACs::alac:
+				acodec = "-c:a alac";
+				exp = "m4a";
+				break;
+			case ACs::aac:
+				acodec = "-b:a 256k -aac_coder twoloop -c:a aac -strict experimental";
+				exp = "aac";
+				break;
+			case ACs::mp3:
+				acodec = "-b:a " + to_string(bt * 2) + "k -c:a libmp3lame -strict unofficial -id3v2_version 3";
+				exp = "mp3";
+				break;
+		}
+		string newfile;
+		for (const auto &x : wavs) {
+			if (x.empty()) continue;
+			newfile = (outDir / fs::path("Audios") / x.stem()).string() + "." + exp;
 
-			fs::remove(x);
+			string jsonpass = (outDir / fs::path("Audios") / x.stem()).string() + ".info.json";
+			std::ifstream fs(utf8_to_sjis(jsonpass), std::ios::in);
+			string artist, title, date, comment;
+			if (!fs.fail()) {
+				const string json = string(std::istreambuf_iterator<char>(fs), std::istreambuf_iterator<char>());
+				fs.close();
+				if (json.empty()) continue;
+
+				picojson::value sv;
+				const string err = picojson::parse(sv, json);
+
+				if (!err.empty()) {
+					std::lock_guard lock(*(ui->mtx));
+					ui->addLOG(err);
+				}
+				picojson::object &cfg_ = sv.get<picojson::object>();
+
+				auto artist_ 	= cfg_["uploader"].get<string>();
+				auto title_ 	= cfg_["title"].get<string>();
+				auto date_ 		= cfg_["upload_date"].get<string>();
+				auto comment_	= cfg_["description"].get<string>();
+
+				int rb 	 = decode_unicode_escape_to_utf8(artist_, artist);
+				rb 		+= decode_unicode_escape_to_utf8(title_, title);
+				rb 		+= decode_unicode_escape_to_utf8(date_, date);
+				rb 		+= decode_unicode_escape_to_utf8(comment_, comment);
+
+				lock();
+				ui->addLOGasis(
+					artist + "\n" + title + "\n" + date + "\n" + comment
+				);
+				unlock();
+				normalize(comment);
+			} else {
+				std::lock_guard lock(*(ui->mtx));
+				ui->addLOG("メタデータ情報が見つかりませんでした");
+				ui->addLOG(jsonpass);
+			}
+
+			string cmd2 = ffdir + " -y -loglevel quiet -vn -i \"" + x.string();
+			if (th) 	cmd2 += "\" -i \"" + (outDir / fs::path("Audios") / x.stem()).string() + ".jpg";
+			cmd2 		+= "\" -disposition attached_pic -ar 44100 -ac 2 " + acodec
+						+ " -metadata \"title\"=\"" + title + "\" -metadata \"artist\"=\"" + artist + "\" -metadata \"date\"=\"" 
+						+ date + "\" -metadata \"comment\"=\"" + comment + "\" "
+						+ "\"" + newfile + "\"";
+			string r;
+			bool ret = !Popen::Popen(utf8_to_sjis(cmd2), r, Popen::Debug);
+			if (r.find("Debug") == string::npos && !(ret || r.empty())) {
+				lock();
+				ui->addLOG("Command : ");
+				ui->addLOG(cmd2);
+				ui->addLOG(r);
+				unlock();
+				++errs;
+				break;
+			}
+
+			// 元データの削除
+			if (!leave || !!errs)	{
+				std::error_code ec;
+				fs::remove(x, ec);
+				if (ec.value() != 0) {
+					std::lock_guard lock(*(ui->mtx));
+					ui->addLOGasis("Raw file remove error code : " + std::to_string(ec.value()) + "\n" + ec.message());
+					++errs;
+				}
+				ec.clear();
+				fs::remove(jsonpass, ec);
+				if (ec.value() != 0) {
+					std::lock_guard lock(*(ui->mtx));
+					ui->addLOGasis("Raw file remove error code : " + std::to_string(ec.value()) + "\n" + ec.message());
+					++errs;
+				}
+			}
 		}
 	}
 
@@ -280,7 +394,7 @@ void YDR::Download() {
 						unlock();
 						continue;
 					}
-					fs::path np = outDir / x.filename();
+					fs::path np = outDir / fs::u8path(title.c_str() + x.extension().string());
 					fs::rename(x, np, ec);
 					if (ec.value() != 0 && ec.value() != 17) {
 						std::lock_guard<std::mutex> lock(*(ui->mtx));
@@ -292,9 +406,9 @@ void YDR::Download() {
 				std::error_code ec;
 				fs::path dd = outDir / fs::path("Audios"s);
 				fs::remove_all(dd, ec);
-				if (ec) {
+				if (ec.value() != 0) {
 					std::lock_guard<std::mutex> lock(*(ui->mtx));
-					ui->addLOG("Audios fs::rename("s + dd.string() + ", ec) error! : code = "s + to_string(ec.value()) + " : "s + ec.message());
+					ui->addLOG("Audios fs::remove_all("s + dd.string() + ", ec) error! : code = "s + to_string(ec.value()) + " : "s + ec.message());
 					ui->dled();
 					errs++;
 				}
@@ -309,9 +423,8 @@ void YDR::Download() {
 		return;
 	}
 
-	ui->addLOG("ダウンロード終了");
-
 	lock();
+	ui->addLOG("ダウンロード終了");
 	ui->dled();
 	unlock();
 
@@ -333,9 +446,9 @@ inline void opening(Widget *ui) {
 		anime->setEndValue(rec);
 		anime->setEasingCurve(QEasingCurve::OutQuint);
 
-		auto oeff = new QGraphicsOpacityEffect(ui);
+		auto oeff = new QGraphicsOpacityEffect(frame[i]);
 		frame[i]->setGraphicsEffect(oeff);
-		auto anime1 =  new QPropertyAnimation(ui, "opacity");
+		auto anime1 =  new QPropertyAnimation(oeff, "opacity");
 		anime1->setTargetObject(oeff);
 		anime1->setDuration(ms);
 		anime1->setStartValue(0.0);
@@ -347,31 +460,70 @@ inline void opening(Widget *ui) {
 	}
 }
 
+template<typename TYPE>
+struct LenArray {
+	TYPE array;
+	size_t len;
+};
+
+int fontnum = 0;
+
+int CALLBACK EnumFontFamExProc(ENUMLOGFONTEXW *lpelfe, NEWTEXTMETRICEX *lpntme, int FontType , LPARAM lParam) {
+	auto p = reinterpret_cast<LenArray<const wchar_t *> *>(lParam);
+	p[fontnum].array = &lpelfe->elfFullName[0];
+	p[fontnum].len = wcslen(p[fontnum].array);
+	++fontnum;
+	return 1;
+}
+
+class Fonts {
+	public:
+		std::array<LenArray<const wchar_t *>, 2048> FontNames;
+		bool searchFont(wstring name) {
+			for (auto i = 0; i < fontnum; ++i) {
+				auto FontName = wstring(FontNames[i].array, FontNames[i].len);
+				if(FontName.find(name) != wstring::npos) {
+					return true;
+				}
+			}
+			return false;
+		}
+		Fonts() {
+			LOGFONTW lf;
+			HDC hdc = GetDC(0);
+			lf.lfFaceName[0] = 0;
+			lf.lfPitchAndFamily = DEFAULT_PITCH;
+			lf.lfCharSet = SHIFTJIS_CHARSET; 
+			EnumFontFamiliesExW(hdc, &lf, (FONTENUMPROCW)EnumFontFamExProc, reinterpret_cast<LPARAM>(this->FontNames.data()), 0);
+			ReleaseDC(0, hdc);
+		}
+
+};
+
+inline void CreateConsole(void) {
+    FILE* fp;
+    AllocConsole();
+    freopen_s(&fp, "CONOUT$", "w", stdout); /* 標準出力(stdout)を新しいコンソールに向ける */
+    freopen_s(&fp, "CONOUT$", "w", stderr); /* 標準エラー出力(stderr)を新しいコンソールに向ける */
+}
+
 int main(int argc, char **argv) {
-	SetConsoleOutputCP(CP_UTF8);
 	setvbuf(stdout, nullptr, _IOFBF, size_t(1024 * 1024));
+	SetConsoleOutputCP(CP_UTF8);
 
     // mainの最初でQApplicationを作っておく
     QApplication app(argc, argv);
 	
-	QFont uifont;
-	vector<fs::path> paths;
-	if (cglob::glob("migmix-1p-bold.ttf", paths)) {
-		for (const auto &fpaths : paths) {
-			qDebug() << QString(fpaths.string().c_str());
-		}
-		const QString fontpath = paths[0].string().c_str();
-		const int id = QFontDatabase::addApplicationFont(fontpath);
-		qDebug() << id;
-		const QString family = QFontDatabase::applicationFontFamilies(id).at(0);
-		qDebug() << family;
-		uifont = QFont(family);
-		app.setFont(uifont);
+	Fonts font; QFont uifont;
+	if (font.searchFont(L"MigMix 1P Bold")) {
+		uifont = QFont("MigMix 1P Bold");
+	} else {
+		uifont = QFont("Meiryo UI Bold");
 	}
+	app.setFont(uifont);
 
     // 自作のWidgetクラスを生成、表示
     Widget *widget = new Widget;
-	widget->setFont(uifont);
     widget->show();
 	opening(widget);
 

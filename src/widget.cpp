@@ -1,7 +1,6 @@
 #include "widget.h"
 #include "Header.hpp"
 
-const string ACs[] = { "best"s, "wav"s, "flac"s, "alac"s, "aac"s, "mp3"s };
 namespace my{
 	inline std::string col (std::string c) noexcept{
 		if (c[0] != '#') return ("#"s + c);
@@ -34,7 +33,7 @@ namespace my{
 			ui->addLOG("style.jsonが見つかりませんでした"s);
 			return;
 		}
-		const string json((std::istreambuf_iterator<char>(fs)), std::istreambuf_iterator<char>());
+		const string json = string(std::istreambuf_iterator<char>(fs), std::istreambuf_iterator<char>());
 		
 		fs.close();
 		if (json.empty()) {
@@ -151,6 +150,8 @@ Widget::Widget(QWidget *parent) : QWidget(parent), mtx(new std::mutex), LOGt(new
 	connect(URLEntry, SIGNAL(clickLink()), this, SLOT(goLink()));
     connect(SButton, SIGNAL(clicked()), this, SLOT(SelectDir()));
 	connect(DLButton, SIGNAL(clicked()), this, SLOT(Download()));
+	connect(diaButton, SIGNAL(clicked()), this, SLOT(openDialog()));
+	connect(Mp3Qua, SIGNAL(valueChanged(int)), this, SLOT(updateQuaNum(int)));
 	connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
 	connect(LOGt, SIGNAL(timeout()), this, SLOT(updateLOG()));
 	connect(timer, SIGNAL(timeout()), this, SLOT(DownloadEnd()));
@@ -165,13 +166,23 @@ Widget::~Widget() {
 
 void Widget::closeEvent(QCloseEvent *e) {
 	if (DLButton->text() != tr("ダウンロード開始")) {
-		const auto ret = QMessageBox::question(this, tr("終了確認"), tr("終了しますか？\n(ダウンロードの終了を待ちます)"));
-		if (ret == QMessageBox::No) {
+		QMessageBox qmb(this);
+		qmb.setText("ソフトを終了しますか?");
+		qmb.setWindowTitle("修了確認");
+		qmb.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+		qmb.setButtonText(QMessageBox::Yes, "ダウンロードを待って終了");
+		qmb.setButtonText(QMessageBox::No, "ダウンロードを待たずに終了");
+		qmb.setButtonText(QMessageBox::Cancel, "キャンセル");
+		int ret = qmb.exec();
+		if (ret == QMessageBox::Cancel) {
 			e->ignore();
+		} else if (ret == QMessageBox::No) {
+			exit(0);
 		} else {
 			timer->stop();
 			LOGt->stop();
 			if (thr_dl.joinable()) thr_dl.join();
+			QWidget::closeEvent(e);
 		}
 	}
 }
@@ -249,6 +260,7 @@ void Widget::mousePressEvent(QMouseEvent *e) {
 		isDrag = true;
 		offset = e->pos();
 	}
+	if (isOpen && (e->pos().x() > UiSelect->width()) && (e->pos().y() > Frame->height())) closeDialogAnime();
 	QWidget::mousePressEvent(e);
 }
 void Widget::mouseReleaseEvent(QMouseEvent *e) {
@@ -262,13 +274,14 @@ void Widget::mouseMoveEvent(QMouseEvent *e) {
 }
 
 void Widget::addLOG(string s) {
+	normalize(s);
 	if (logs.empty()) {
-		logs = normalize(s);
+		logs = s;
 		return;
 	}
 	string ltmp = get_last_line(logs);
 	if (ltmp.find(s) == string::npos) {
-		logs += "\n"s + normalize(s);
+		logs += "\n" + s;
 	}
 }
 void Widget::addLOG(wstring ws) {
@@ -283,19 +296,19 @@ void Widget::addLOG(const char* cs) {
 	addLOG(string(cs));
 }
 void Widget::addLOGasis(const string s) {
-	logs += s;
+	logs += "\n" + s;
 }
 void Widget::addLOGasis(const wstring ws) {
 	string s = wide_to_utf8(ws);
-	logs += s;
+	logs += "\n" + s;
 }
 void Widget::addLOGasis(const QString qs) {
 	string s = qs.toStdString();
-	logs += s;	
+	logs += "\n" + s;	
 }
 void Widget::addLOGasis(const char* cs) {
 	string s = string(cs);
-	logs += s;
+	logs += "\n" + s;
 }
 
 void Widget::updateLOG() {
@@ -318,6 +331,72 @@ void Widget::SelectDir() {
 	ODEntry->setText(QString::fromUtf8(dir));
 }
 
+void Widget::openDialogAnime() {
+	std::array<QFrame *, 6> frame = {
+		URLFrame, VorA, ACCs, OutDirFrame, LOGFrame, DLFrame,
+	};
+	auto oda = new QPropertyAnimation(UiSelect, "geometry");
+	oda->setDuration(1000);
+	QRect rec = UiSelect->geometry();
+	oda->setStartValue(rec);
+	oda->setEndValue(QRect(rec.x() + 360, rec.y(), rec.width(), rec.height()));
+	oda->setEasingCurve(QEasingCurve::InOutCirc);
+	oda->start(QAbstractAnimation::DeleteWhenStopped);
+
+	for (int i = 0; i < 6; ++i) {
+		auto oeff = new QGraphicsOpacityEffect(frame[i]);
+		frame[i]->setGraphicsEffect(oeff);
+		auto fade = new QPropertyAnimation(frame[i], "opacity");
+		fade->setTargetObject(oeff);
+		fade->setDuration(1000);
+		fade->setStartValue(1.00);
+		fade->setEndValue(0.25);
+		fade->setEasingCurve(QEasingCurve::InOutCirc);
+		fade->start(QAbstractAnimation::DeleteWhenStopped);
+	}
+	
+	isOpen = true;
+
+
+}
+
+void Widget::closeDialogAnime() {
+	std::array<QFrame *, 6> frame = {
+		URLFrame, VorA, ACCs, OutDirFrame, LOGFrame, DLFrame,
+	};
+	auto cda = new QPropertyAnimation(UiSelect, "geometry");
+	cda->setDuration(1000);
+	QRect rec = UiSelect->geometry();
+	cda->setStartValue(rec);
+	cda->setEndValue(QRect(rec.x() - 360, rec.y(), rec.width(), rec.height()));
+	cda->setEasingCurve(QEasingCurve::InOutCirc);
+	cda->start(QAbstractAnimation::DeleteWhenStopped);
+
+	for (int i = 0; i < 6; ++i) {
+		auto oeff = new QGraphicsOpacityEffect(frame[i]);
+		frame[i]->setGraphicsEffect(oeff);
+		auto fade = new QPropertyAnimation(frame[i], "opacity");
+		fade->setTargetObject(oeff);
+		fade->setDuration(1000);
+		fade->setStartValue(0.25);
+		fade->setEndValue(1.00);
+		fade->setEasingCurve(QEasingCurve::InOutCirc);
+		fade->start(QAbstractAnimation::DeleteWhenStopped);
+	}
+	isOpen = false;
+}
+
+void Widget::openDialog() {
+	if (!isOpen) 	openDialogAnime();
+	else			closeDialogAnime();
+}
+
+void Widget::updateQuaNum(int value) {
+	qDebug() << QString("Call Update Quality Num");
+	Mp3QuaNum->setText(QString::number(value) + QString("k"));
+	Mp3QuaNum->update();
+}
+
 bool Widget::dled() {
 	ENDDL = true;
 	return ENDDL.load();
@@ -331,8 +410,9 @@ void Widget::DownloadEnd() {
 	updateLOG();
 }
 
-void dl(Widget *const iui, const string iURL, const fs::path ioutDir, const string iffdir, const uint8_t iVAA, const string iAC, const bool ith, const bool iex) noexcept{
-	YDR proc(iui, iURL, ioutDir, iffdir, iVAA, iAC, ith, iex);
+void dl	(Widget *const iui, const string iURL, const fs::path ioutDir, const string iffdir,
+		const uint8_t iVAA, const int iAC, const unsigned int ibt, const bool ith, const bool ileave, const bool iex) noexcept{
+	YDR proc(iui, iURL, ioutDir, iffdir, iVAA, iAC, ibt, ith, ileave, iex);
 	proc.Download();
 	return;
 }
@@ -360,8 +440,8 @@ void Widget::Download() {
 		LOG->setText("空白を埋めてください");
 		return;
 	}
-	if (od.length() <= 2) {
-		LOG->setText("出力先ディレクトリが不正です");
+	if (!fs::exists(fs::path(od))) {
+		LOG->setText("出力先ディレクトリが存在しません");
 		return;
 	}
 
@@ -371,15 +451,15 @@ void Widget::Download() {
 		return;
 	}
 	
-	const string ac = ACs[ACCombo->currentIndex()];
-
+	const int ac = ACCombo->currentIndex();
+	const unsigned int bt = static_cast<unsigned int>(Mp3Qua->value());
 	const bool th = ThCheckBox->checkState() == Qt::Checked;
-	
+	const bool lev = Leave->checkState() == Qt::Checked;
 	const bool ex = ExitCheckBox->checkState() == Qt::Checked;
 	DLButton->setText("ダウンロード中");
 	timer->start(msec);
 	LOGt->start(msec);
 
-	thr_dl = std::thread(dl, this, url, fs::path(od), ffdir, VAA, ac, th, ex);
+	thr_dl = std::thread(dl, this, url, fs::path(od), ffdir, VAA, ac, bt, th, lev, ex);
 	return;
 }

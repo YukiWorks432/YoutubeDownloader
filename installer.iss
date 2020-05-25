@@ -9,6 +9,7 @@
 #define URL "https://github.com/YukiWorks432/YoutubeDownloader"
 
 [Setup]
+AppId="{{YTDRYTDR-yuki-2020-AB5G-98ZPTJ9NNVHS}"
 AppName=YoutubeDownloader
 AppVersion=0.1.0.0
 AppPublisher="Yuki"
@@ -33,13 +34,16 @@ ArchitecturesAllowed=x64
 ; done in "64-bit mode" on x64, meaning it should use the native
 ; 64-bit Program Files directory and the 64-bit view of the registry.
 ArchitecturesInstallIn64BitMode=x64
+CloseApplicationsFilter=*.exe,*.dll,*.chm,*.ttf 
 
 [Files]
-Source: "*";                            DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "Readme.txt";                   DestDir: "{app}"; Flags: isreadme
+Source: "YoutubeDownloader.exe";        DestDir: "{app}";
+Source: "*";                            DestDir: "{app}";                                       Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "Readme.txt";                   DestDir: "{app}";                                       Flags: isreadme
 
 [Run]
-Filename: "{app}\YoutubeDownloader.exe"; Description: "インストール完了後ゲームを起動する"; Flags: postinstall shellexec skipifsilent  
+Filename: "{app}\YoutubeDownloader.exe";    Description: "インストール完了後アプリを起動する";  Flags: postinstall shellexec skipifsilent  
+Filename: "{app}\fonts\migmix-1p-bold.ttf"; Description: "推奨フォントをインストールする";      Flags: postinstall shellexec skipifsilent  
 
 [Languages]
 Name: japanease; MessagesFile: compiler:Languages\Japanese.isl

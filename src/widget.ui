@@ -25,19 +25,6 @@
     <height>460</height>
    </size>
   </property>
-  <property name="font">
-   <font>
-    <family>M+ 2p heavy</family>
-    <pointsize>14</pointsize>
-    <weight>50</weight>
-    <italic>true</italic>
-    <bold>false</bold>
-    <underline>false</underline>
-    <strikeout>false</strikeout>
-    <stylestrategy>PreferAntialias</stylestrategy>
-    <kerning>true</kerning>
-   </font>
-  </property>
   <property name="cursor">
    <cursorShape>ArrowCursor</cursorShape>
   </property>
@@ -59,7 +46,7 @@
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>
   </property>
-  <widget class="MYFrame" name="URLFrame">
+  <widget class="QFrame" name="URLFrame">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -70,10 +57,8 @@
    </property>
    <property name="font">
     <font>
-     <family>M+ 2p heavy</family>
      <pointsize>14</pointsize>
      <weight>50</weight>
-     <italic>false</italic>
      <bold>false</bold>
      <underline>false</underline>
      <strikeout>false</strikeout>
@@ -101,10 +86,8 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
-      <italic>false</italic>
       <bold>false</bold>
       <underline>false</underline>
       <strikeout>false</strikeout>
@@ -130,10 +113,8 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
-      <italic>false</italic>
       <bold>false</bold>
       <underline>false</underline>
       <strikeout>false</strikeout>
@@ -158,7 +139,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="MYFrame" name="DLFrame">
+  <widget class="QFrame" name="DLFrame">
    <property name="geometry">
     <rect>
      <x>700</x>
@@ -169,10 +150,8 @@
    </property>
    <property name="font">
     <font>
-     <family>M+ 2p heavy</family>
      <pointsize>14</pointsize>
      <weight>50</weight>
-     <italic>false</italic>
      <bold>false</bold>
      <underline>false</underline>
      <strikeout>false</strikeout>
@@ -200,10 +179,8 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>10</pointsize>
       <weight>50</weight>
-      <italic>false</italic>
       <bold>false</bold>
       <underline>false</underline>
       <strikeout>false</strikeout>
@@ -253,10 +230,8 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>8</pointsize>
       <weight>50</weight>
-      <italic>false</italic>
       <bold>false</bold>
       <underline>false</underline>
       <strikeout>false</strikeout>
@@ -272,7 +247,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="MYFrame" name="VorA">
+  <widget class="QFrame" name="VorA">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -283,10 +258,8 @@
    </property>
    <property name="font">
     <font>
-     <family>M+ 2p heavy</family>
      <pointsize>14</pointsize>
      <weight>50</weight>
-     <italic>false</italic>
      <bold>false</bold>
      <underline>false</underline>
      <strikeout>false</strikeout>
@@ -314,10 +287,8 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
-      <italic>false</italic>
       <bold>false</bold>
       <underline>false</underline>
       <strikeout>false</strikeout>
@@ -343,10 +314,8 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
-      <italic>false</italic>
       <bold>false</bold>
       <underline>false</underline>
       <strikeout>false</strikeout>
@@ -365,7 +334,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="MYFrame" name="OutDirFrame">
+  <widget class="QFrame" name="OutDirFrame">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -376,10 +345,8 @@
    </property>
    <property name="font">
     <font>
-     <family>M+ 2p heavy</family>
      <pointsize>14</pointsize>
      <weight>50</weight>
-     <italic>false</italic>
      <bold>false</bold>
      <underline>false</underline>
      <strikeout>false</strikeout>
@@ -410,10 +377,8 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
-      <italic>false</italic>
       <bold>false</bold>
       <underline>false</underline>
       <strikeout>false</strikeout>
@@ -439,10 +404,8 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
-      <italic>false</italic>
       <bold>false</bold>
       <underline>false</underline>
       <strikeout>false</strikeout>
@@ -495,10 +458,8 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
-      <italic>false</italic>
       <bold>false</bold>
       <underline>false</underline>
       <strikeout>false</strikeout>
@@ -517,7 +478,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="MYFrame" name="ACCs">
+  <widget class="QFrame" name="ACCs">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -528,10 +489,8 @@
    </property>
    <property name="font">
     <font>
-     <family>M+ 2p heavy</family>
      <pointsize>14</pointsize>
      <weight>50</weight>
-     <italic>false</italic>
      <bold>false</bold>
      <underline>false</underline>
      <strikeout>false</strikeout>
@@ -559,10 +518,8 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>14</pointsize>
       <weight>50</weight>
-      <italic>false</italic>
       <bold>false</bold>
       <underline>false</underline>
       <strikeout>false</strikeout>
@@ -627,10 +584,8 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>12</pointsize>
       <weight>50</weight>
-      <italic>false</italic>
       <bold>false</bold>
       <underline>false</underline>
       <strikeout>false</strikeout>
@@ -646,7 +601,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="MYFrame" name="Frame">
+  <widget class="QFrame" name="Frame">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -654,6 +609,17 @@
      <width>1081</width>
      <height>41</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+     <underline>false</underline>
+     <strikeout>false</strikeout>
+     <stylestrategy>PreferAntialias</stylestrategy>
+     <kerning>true</kerning>
+    </font>
    </property>
    <property name="styleSheet">
     <string notr="true"/>
@@ -675,9 +641,13 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>20</pointsize>
-      <italic>false</italic>
+      <weight>50</weight>
+      <bold>false</bold>
+      <underline>false</underline>
+      <strikeout>false</strikeout>
+      <stylestrategy>PreferAntialias</stylestrategy>
+      <kerning>true</kerning>
      </font>
     </property>
     <property name="styleSheet">
@@ -701,9 +671,13 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>20</pointsize>
-      <italic>false</italic>
+      <weight>50</weight>
+      <bold>false</bold>
+      <underline>false</underline>
+      <strikeout>false</strikeout>
+      <stylestrategy>PreferAntialias</stylestrategy>
+      <kerning>true</kerning>
      </font>
     </property>
     <property name="styleSheet">
@@ -717,7 +691,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="MYFrame" name="LOGFrame">
+  <widget class="QFrame" name="LOGFrame">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -725,6 +699,17 @@
      <width>681</width>
      <height>151</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+     <underline>false</underline>
+     <strikeout>false</strikeout>
+     <stylestrategy>PreferAntialias</stylestrategy>
+     <kerning>true</kerning>
+    </font>
    </property>
    <property name="autoFillBackground">
     <bool>false</bool>
@@ -749,10 +734,8 @@
     </property>
     <property name="font">
      <font>
-      <family>M+ 2p black</family>
       <pointsize>8</pointsize>
       <weight>50</weight>
-      <italic>false</italic>
       <bold>false</bold>
       <underline>false</underline>
       <strikeout>false</strikeout>
@@ -771,7 +754,7 @@
     </property>
    </widget>
   </widget>
-  <widget class="MYFrame" name="UiSelect">
+  <widget class="QWidget" name="UiSelect" native="true">
    <property name="geometry">
     <rect>
      <x>-360</x>
@@ -780,12 +763,136 @@
      <height>421</height>
     </rect>
    </property>
-   <property name="frameShape">
-    <enum>QFrame::StyledPanel</enum>
+   <property name="font">
+    <font>
+     <pointsize>14</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
+     <underline>false</underline>
+     <strikeout>false</strikeout>
+     <stylestrategy>PreferAntialias</stylestrategy>
+     <kerning>true</kerning>
+    </font>
    </property>
-   <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
+   <property name="cursor">
+    <cursorShape>ArrowCursor</cursorShape>
    </property>
+   <widget class="QCheckBox" name="Leave">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>341</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+      <weight>50</weight>
+      <bold>false</bold>
+      <underline>false</underline>
+      <strikeout>false</strikeout>
+      <stylestrategy>PreferAntialias</stylestrategy>
+      <kerning>true</kerning>
+     </font>
+    </property>
+    <property name="text">
+     <string>元のファイルを残す</string>
+    </property>
+   </widget>
+   <widget class="QSlider" name="Mp3Qua">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>150</y>
+      <width>341</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>96</number>
+    </property>
+    <property name="maximum">
+     <number>512</number>
+    </property>
+    <property name="pageStep">
+     <number>16</number>
+    </property>
+    <property name="value">
+     <number>256</number>
+    </property>
+    <property name="tracking">
+     <bool>true</bool>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+    <property name="invertedAppearance">
+     <bool>false</bool>
+    </property>
+    <property name="invertedControls">
+     <bool>false</bool>
+    </property>
+    <property name="tickPosition">
+     <enum>QSlider::NoTicks</enum>
+    </property>
+    <property name="tickInterval">
+     <number>0</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>100</y>
+      <width>191</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Mp3 Quality</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="Mp3QuaNum">
+    <property name="geometry">
+     <rect>
+      <x>260</x>
+      <y>100</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>256k</string>
+    </property>
+   </widget>
+   <widget class="Line" name="line">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>60</y>
+      <width>361</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="Line" name="line_2">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>200</y>
+      <width>361</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
@@ -794,12 +901,6 @@
    <class>MYTextEdit</class>
    <extends>QTextEdit</extends>
    <header>mytextedit.h</header>
-  </customwidget>
-  <customwidget>
-   <class>MYFrame</class>
-   <extends>QFrame</extends>
-   <header>myframe.h</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

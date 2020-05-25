@@ -36,10 +36,12 @@
 #include <fstream>
 #include <picojson>
 #include <chrono>
+#include <wchar.h>
 #include "cglob.hpp"
 #include "strconv.hpp"
 using std::cout; using std::wcout; using std::endl;
 using std::array; using std::vector; using std::string; using std::wstring; using std::to_string;
+using std::unordered_map;
 namespace fs = std::filesystem;
 using namespace std::literals::string_literals;
 
@@ -50,6 +52,8 @@ inline QString operator+(QString qstr, std::string str)
 inline string operator+(string str_, int n)
 {	return str_ + to_string(n); }
 
+inline void stop()
+{	system("pause > nul");	}
 inline std::vector<std::string> split(const std::string &str, const char &del) noexcept{
     int first = 0;
     int last = str.find_first_of(del);
@@ -86,20 +90,21 @@ inline void normalizeTitle(string &targetStr) noexcept{
     string destStr;
     for (const auto c : targetStr) {
         if (c != CR && c != LF) {
-			if (c == SS || c == BS) destStr += '-';
-			else 					destStr += c;
+			if(c == ' ' || c == '\t') { continue; }
+			if (c == SS || c == BS) { destStr += '-'; continue; }
+			destStr += c;
 		}
     }
     targetStr = std::move(destStr);
 }
-inline string normalize(string &targetStr) noexcept{
+inline void normalize(string &targetStr) noexcept{
     const char CR = '\r';
     const char LF = '\n';
     string destStr;
     for (const auto c : targetStr) {
         if (c != CR && c != LF) destStr += c;
     }
-    return destStr;
+    targetStr = std::move(destStr);
 }
 inline string HexToRGBA(const string &Hex, const int &a) noexcept{
 	string rgba = "rgba(";
@@ -114,6 +119,83 @@ inline string get_last_line(const string &s__) noexcept{
 	std::size_t p = s__.find_last_of('\n');
 	if (p == string::npos) 	return s__;
 	else 					return s__.substr(p + 1);
+}
+
+inline bool decode_unicode_escape_to_utf8(const std::string& src, std::string& dst) {
+	std::string result("");
+	result.resize(src.size());
+
+	for (size_t i = 0; i < result.size(); ++i) {
+		result[i] = '\0';
+	}
+
+	size_t result_index = 0;
+	bool in_surrogate_pair = false;
+	size_t surrogate_buffer = 0;
+	for (size_t i = 0; i < src.size(); ++i) {
+		if (i + 1 < src.size() && src[i] == '\\' && src[i+1] == 'u') {
+			size_t octet = 0;
+			{  // calculate octet
+				const char* const hex = &src[i + 2];
+				for (int j = 0; j < 4; ++j) {
+					octet *= 16;
+					if ('0' <= hex[j] && hex[j] <= '9') {
+						octet += static_cast<int>(hex[j] - '0');
+					} else if ('a' <= hex[j] && hex[j] <= 'f') {
+						octet += static_cast<int>(hex[j] - 'a' + 10);
+					} else if ('A' <= hex[j] && hex[j] <= 'F') {
+						octet += static_cast<int>(hex[j] - 'A' + 10);
+					} else {
+						return false;
+					}
+				}
+			}
+			{  // fill up sequence
+				char* const sequence = &result[result_index];
+				if (in_surrogate_pair) {
+					if (0xdc00 <= octet && octet <= 0xdfff) {
+					// low surrogate pair
+					const size_t joined = surrogate_buffer + (octet & 0x03ff) + 0x10000;
+					sequence[0] = (static_cast<char>(joined >> 18)  &  0x3) | 0xf0;
+					sequence[1] = (static_cast<char>(joined >> 12)  & 0x3f) | 0x80;
+					sequence[2] = (static_cast<char>(joined >> 6)   & 0x3f) | 0x80;
+					sequence[3] = (static_cast<char>(joined & 0xff) & 0x3f) | 0x80;
+					result_index += 4;
+					in_surrogate_pair = false;
+					} else {
+						return false;
+					}
+				} else if (octet < 0x7f) {
+					sequence[0] = static_cast<char>(octet) & 0x7f;
+					result_index += 1;
+				} else if (octet < 0x7ff) {
+					sequence[0] = (static_cast<char>(octet >> 6) & 0xdf) | 0xc0;
+					sequence[1] = (static_cast<char>(octet)      & 0x3f) | 0x80;
+					result_index += 2;
+				} else if (0xdbff) {
+					// high surrogate pair
+					in_surrogate_pair = true;
+					surrogate_buffer = (octet & 0x03ff) * 0x400;
+				} else {
+					sequence[0] = (static_cast<char>(octet >> 12) & 0x0f) | 0xe0;
+					sequence[1] = (static_cast<char>(octet >> 6)  & 0x3f) | 0x80;
+					sequence[2] = (static_cast<char>(octet)       & 0x3f) | 0x80;
+					result_index += 3;
+				}
+			}
+			i += 5;  // \\uXXXX is 6 bytes, so + 5 here, and + 1 in next loop
+		} else {  // not unicode
+			if (in_surrogate_pair) {
+				return false;
+			}
+			result[result_index] = src[i];
+			result_index += 1;
+		}
+		// next char
+	}
+	result.resize(result_index);
+	dst.swap(result);
+	return true;
 }
 
 struct pallet {
@@ -150,6 +232,8 @@ class Widget : public QWidget, public Ui::Widget {
 		void addLOGasis(const wstring ws);
 		void addLOGasis(const QString qs);
 		void addLOGasis(const char* cs);
+		void openDialogAnime();
+		void closeDialogAnime();
 		bool dled();
 		std::mutex *const mtx;
 		vector<string> moods;
@@ -183,6 +267,8 @@ class Widget : public QWidget, public Ui::Widget {
 		void updateLOG();
 		void DownloadEnd();
 		void goLink();
+		void openDialog();
+		void updateQuaNum(int value);
 
 	private:
 		pallet nowPallet;
@@ -196,6 +282,7 @@ class Widget : public QWidget, public Ui::Widget {
 		std::atomic<bool> ENDDL = false;
 		std::atomic<bool> isDrag = false;
 		std::atomic<bool> hovering = false;
+		std::atomic<bool> isOpen = false;
 		const unsigned int msec = 10;
 };
 

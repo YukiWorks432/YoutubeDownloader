@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <fcntl.h>
 #include "strconv.hpp"
 using std::string;using std::wstring;using std::cout;using std::endl;using std::to_string;
 using namespace std::literals::string_literals;
@@ -14,6 +15,7 @@ namespace Popen{
 	enum Flags{
 		Default 	= 0b0001,
 		NoOutput 	= 0b0010,
+		Debug 		= 0b0011,
 	};
 	inline void GLEM(wstring &result) noexcept{
 		auto Er = GetLastError();
@@ -44,6 +46,16 @@ namespace Popen{
 		return;
 	}
 	inline bool Popen(const string &command, string &result, const unsigned int flag = Flags::Default) noexcept{
+		if (flag == Debug) {
+			FILE* fp;
+			AllocConsole();
+			freopen_s(&fp, "CONOUT$", "w", stdout); /* 標準出力(stdout)を新しいコンソールに向ける */
+			freopen_s(&fp, "CONOUT$", "w", stderr); /* 標準エラー出力(stderr)を新しいコンソールに向ける */
+			printf("%s\n", command.c_str());
+			system(command.c_str());
+			result = "Popen Is Debug Mode.";
+			return true;
+		}
 		SetLastError(0);
 		SECURITY_ATTRIBUTES sa;
 		HANDLE read, write;
