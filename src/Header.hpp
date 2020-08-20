@@ -6,8 +6,8 @@
 class YDR {
 	public:
 		explicit YDR(	Widget *const iui, const string iURL, const fs::path ioutDir, const string iffdir,
-						const uint8_t iVAA, const int iAC, const unsigned int ibt, const bool ith, const bool ileave, const bool iex)
-		: ui(iui), URL(iURL), outDir(ioutDir), ffdir(iffdir), VAA(iVAA), AC(iAC), bt(ibt), th(ith), leave(ileave), ex(iex) {};
+						const uint8_t iVAA, const int iAC, const unsigned int ibt, const bool ith, const bool ileave, const bool iex, const int idmode)
+		: ui(iui), URL(iURL), outDir(ioutDir), ffdir(iffdir), VAA(iVAA), AC(iAC), bt(ibt), th(ith), leave(ileave), ex(iex), dmode(idmode) {};
 		void Download();
 		inline void lock() noexcept
 		{ ui->mtx->lock(); }
@@ -34,6 +34,7 @@ class YDR {
 		const bool th;
 		const bool leave;
 		const bool ex;
+		const int dmode;
 };
 
 #endif

@@ -411,8 +411,8 @@ void Widget::DownloadEnd() {
 }
 
 void dl	(Widget *const iui, const string iURL, const fs::path ioutDir, const string iffdir,
-		const uint8_t iVAA, const int iAC, const unsigned int ibt, const bool ith, const bool ileave, const bool iex) noexcept{
-	YDR proc(iui, iURL, ioutDir, iffdir, iVAA, iAC, ibt, ith, ileave, iex);
+		const uint8_t iVAA, const int iAC, const unsigned int ibt, const bool ith, const bool ileave, const bool iex, const int idmode) noexcept{
+	YDR proc(iui, iURL, ioutDir, iffdir, iVAA, iAC, ibt, ith, ileave, iex, idmode);
 	proc.Download();
 	return;
 }
@@ -456,10 +456,11 @@ void Widget::Download() {
 	const bool th = ThCheckBox->checkState() == Qt::Checked;
 	const bool lev = Leave->checkState() == Qt::Checked;
 	const bool ex = ExitCheckBox->checkState() == Qt::Checked;
+	const int dmode = DebugMode->checkState() == Qt::Checked ? Popen::Debug : Popen::Default;
 	DLButton->setText("ダウンロード中");
 	timer->start(msec);
 	LOGt->start(msec);
 
-	thr_dl = std::thread(dl, this, url, fs::path(od), ffdir, VAA, ac, bt, th, lev, ex);
+	thr_dl = std::thread(dl, this, url, fs::path(od), ffdir, VAA, ac, bt, th, lev, ex, dmode);
 	return;
 }

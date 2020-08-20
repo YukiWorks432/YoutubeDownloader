@@ -1,8 +1,8 @@
 @echo off
 set app=YoutubeDownloader
-set Reset=10
-set type=Debug
-set install=0
+set Reset=1
+set type=Release
+set install=1
 cd build
 if %Reset%==1 (
     rm -rf *
@@ -29,16 +29,13 @@ Python ./copydll.py %app%.exe
 rm -rf ./copydll.py ./ldd.py ./%app%.zip ./%app%_install.exe ./styles/icons/icons.ai ./styles/icons/scifi/ais
 
 if %type%==Debug (
-    gdb -command=.gdbinit %app%.exe
-) else (
-    rm -f ./.gdbinit
+    lldb -command=.gdbinit %app%.exe
 )
+
+rm -f ./.gdbinit
 cd ../
 rm -f %app%.exe
 cd ./%app%-src
-if %install%==1 (
-    ISCC installer.iss
-)
 exit /b
 
 :RET

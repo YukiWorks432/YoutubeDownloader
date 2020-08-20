@@ -38,7 +38,7 @@ void YDR::Download() {
 			if (URL.find("playlist") == string::npos) {
 				string buf;
 				const string cmd = "youtube-dl -e "s + URL;
-				if (!Popen::Popen(cmd, buf)) {
+				if (!Popen::Popen(cmd, buf, dmode)) {
 					std::lock_guard lock(*(ui->mtx));
 					ui->addLOG("タイトル取得失敗"s);
 					++errs;
@@ -50,7 +50,7 @@ void YDR::Download() {
 			} else {
 				string buf;
 				const string cmd = "youtube-dl -e"s + URL;
-				if (!Popen::Popen(cmd, buf)) {
+				if (!Popen::Popen(cmd, buf, dmode)) {
 					std::lock_guard lock(*(ui->mtx));
 					ui->addLOG("タイトル取得失敗");
 					++errs;
@@ -66,7 +66,7 @@ void YDR::Download() {
 		#pragma omp section
 		{
 			const string cmd = "youtube-dl --get-id " + URL;
-			if (!Popen::Popen(cmd, code)) {
+			if (!Popen::Popen(cmd, code, dmode)) {
 				std::lock_guard lock(*(ui->mtx));
 				ui->addLOG("ID取得失敗");
 				++errs;
@@ -78,7 +78,7 @@ void YDR::Download() {
 		{
 			string buf;
 			string cmd = "youtube-dl -F --youtube-skip-dash-manifest "s + URL;
-			if (!Popen::Popen(cmd, buf)) {
+			if (!Popen::Popen(cmd, buf, dmode)) {
 				std::lock_guard lock(*(ui->mtx));
 				ui->addLOG("フォーマット取得失敗"s);
 				ui->addLOG(QString::fromLocal8Bit(buf.c_str()).toStdString());
@@ -302,14 +302,16 @@ void YDR::Download() {
 				ui->addLOG(jsonpass);
 			}
 
-			string cmd2 = ffdir + " -y -loglevel quiet -vn -i \"" + x.string();
-			if (th) 	cmd2 += "\" -i \"" + (outDir / fs::path("Audios") / x.stem()).string() + ".jpg";
+			string cmd2 = ffdir + " -y -loglevel "s + (dmode == Popen::Debug ? "info"s : "quiet"s) + " -vn -i \""s + x.string();
+			if (th && !thumbpass[x.stem().generic_string()].empty()) {
+				cmd2 	+= "\" -i \"" + thumbpass[x.stem().generic_string()].string();
+			}
 			cmd2 		+= "\" -disposition attached_pic -ar 44100 -ac 2 " + acodec
 						+ " -metadata \"title\"=\"" + title + "\" -metadata \"artist\"=\"" + artist + "\" -metadata \"date\"=\"" 
 						+ date + "\" -metadata \"comment\"=\"" + comment + "\" "
 						+ "\"" + newfile + "\"";
 			string r;
-			bool ret = !Popen::Popen(utf8_to_sjis(cmd2), r, Popen::Debug);
+			bool ret = !Popen::Popen(utf8_to_sjis(cmd2), r, dmode);
 			if (r.find("Debug") == string::npos && !(ret || r.empty())) {
 				lock();
 				ui->addLOG("Command : ");
@@ -361,7 +363,7 @@ void YDR::Download() {
 						ui->addLOG("Empty"s);
 						continue;
 					}
-					fs::path np = outDir / x.filename();
+					fs::path np = outDir / fs::u8path(title.c_str() + x.extension().string());
 					fs::rename(x, np, ec);
 					if (ec.value() != 0 && ec.value() != 17) {
 						std::lock_guard<std::mutex> lock(*(ui->mtx));
@@ -511,22 +513,33 @@ int main(int argc, char **argv) {
 	setvbuf(stdout, nullptr, _IOFBF, size_t(1024 * 1024));
 	SetConsoleOutputCP(CP_UTF8);
 
-    // mainの最初でQApplicationを作っておく
-    QApplication app(argc, argv);
-	
-	Fonts font; QFont uifont;
-	if (font.searchFont(L"MigMix 1P Bold")) {
-		uifont = QFont("MigMix 1P Bold");
-	} else {
-		uifont = QFont("Meiryo UI Bold");
+	try {
+		// mainの最初でQApplicationを作っておく
+		QApplication app(argc, argv);
+		
+		Fonts font; QFont uifont;
+		if (font.searchFont(L"MigMix 1P Bold")) {
+			uifont = QFont("MigMix 1P Bold");
+		} else {
+			uifont = QFont("Meiryo UI Bold");
+		}
+		app.setFont(uifont);
+
+		// 自作のWidgetクラスを生成、表示
+		Widget *widget = new Widget;
+		widget->show();
+		opening(widget);
+
+		// ループに入る
+		return app.exec();
+	} catch (std::runtime_error ex) {
+		MessageBox(NULL, ex.what(), "起動に失敗しました。", MB_OK | MB_ICONWARNING);
+		return 0;
+	} catch (std::exception ex) {
+		MessageBox(NULL, ex.what(), "起動に失敗しました。", MB_OK | MB_ICONWARNING);
+		return 0;
+	} catch (...) {
+		MessageBox(NULL, "原因不明の起動エラーです", "起動に失敗しました。", MB_OK | MB_ICONWARNING);
+		return 0;
 	}
-	app.setFont(uifont);
-
-    // 自作のWidgetクラスを生成、表示
-    Widget *widget = new Widget;
-    widget->show();
-	opening(widget);
-
-    // ループに入る
-    return app.exec();
 }

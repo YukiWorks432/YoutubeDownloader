@@ -12,10 +12,10 @@ using std::string;using std::wstring;using std::cout;using std::endl;using std::
 using namespace std::literals::string_literals;
 
 namespace Popen{
-	enum Flags{
-		Default 	= 0b0001,
-		NoOutput 	= 0b0010,
-		Debug 		= 0b0011,
+	enum Flags : int{
+		Default,
+		NoOutput,
+		Debug,
 	};
 	inline void GLEM(wstring &result) noexcept{
 		auto Er = GetLastError();
@@ -45,7 +45,7 @@ namespace Popen{
 		LocalFree(buf);
 		return;
 	}
-	inline bool Popen(const string &command, string &result, const unsigned int flag = Flags::Default) noexcept{
+	inline bool Popen(const string &command, string &result, const int flag = Flags::Default) noexcept{
 		if (flag == Debug) {
 			FILE* fp;
 			AllocConsole();
