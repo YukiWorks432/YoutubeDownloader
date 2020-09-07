@@ -268,7 +268,12 @@ class Widget : public QWidget, public Ui::Widget {
 		void DownloadEnd();
 		void goLink();
 		void openDialog();
-		void updateQuaNum(int value);
+		void updateMP3QuaSlider(int value);
+		void updateMP3QuaNum();
+		void updateVBRSlider(int value);
+		void updateVBRNum();
+		void updateCRFSlider(int value);
+		void updateCRFNum();
 
 	private:
 		pallet nowPallet;

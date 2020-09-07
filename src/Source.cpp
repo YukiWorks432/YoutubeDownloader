@@ -7,10 +7,10 @@ void YDR::Download() {
 	string code;
 	string VFs, AFs;
 	vector<string> VFv, AFv;
-	// ã‚¿ã‚¤ãƒˆãƒ«ã€ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã®å–å¾—
+	// ƒ^ƒCƒgƒ‹AƒtƒH[ƒ}ƒbƒg‚Ìæ“¾
 	#pragma omp parallel sections shared(errs)
 	{
-		// Videosãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã¨Audiosãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã®ä½œæˆ
+		// VideosƒfƒBƒŒƒNƒgƒŠ‚ÆAudiosƒfƒBƒŒƒNƒgƒŠ‚Ìì¬
 		#pragma omp section
 		{
 			std::error_code ec;
@@ -32,15 +32,15 @@ void YDR::Download() {
 				++errs;
 			}
 		}
-		// ã‚¿ã‚¤ãƒˆãƒ«å–å¾—
+		// ƒ^ƒCƒgƒ‹æ“¾
 		#pragma omp section
 		{
 			if (URL.find("playlist") == string::npos) {
 				string buf;
 				const string cmd = "youtube-dl -e "s + URL;
-				if (!Popen::Popen(cmd, buf, dmode)) {
+				if (!Popen::Popen(cmd, buf)) {
 					std::lock_guard lock(*(ui->mtx));
-					ui->addLOG("ã‚¿ã‚¤ãƒˆãƒ«å–å¾—å¤±æ•—"s);
+					ui->addLOG("ƒ^ƒCƒgƒ‹æ“¾¸”s"s);
 					++errs;
 				}
 				title = QString::fromLocal8Bit(buf.c_str()).toStdString();
@@ -50,9 +50,9 @@ void YDR::Download() {
 			} else {
 				string buf;
 				const string cmd = "youtube-dl -e"s + URL;
-				if (!Popen::Popen(cmd, buf, dmode)) {
+				if (!Popen::Popen(cmd, buf)) {
 					std::lock_guard lock(*(ui->mtx));
-					ui->addLOG("ã‚¿ã‚¤ãƒˆãƒ«å–å¾—å¤±æ•—");
+					ui->addLOG("ƒ^ƒCƒgƒ‹æ“¾¸”s");
 					++errs;
 				}
 				for (const auto &t : split(buf, '\n')) {
@@ -62,25 +62,25 @@ void YDR::Download() {
 				}
 			}
 		}
-		// IDå–å¾—
+		// IDæ“¾
 		#pragma omp section
 		{
 			const string cmd = "youtube-dl --get-id " + URL;
-			if (!Popen::Popen(cmd, code, dmode)) {
+			if (!Popen::Popen(cmd, code)) {
 				std::lock_guard lock(*(ui->mtx));
-				ui->addLOG("IDå–å¾—å¤±æ•—");
+				ui->addLOG("IDæ“¾¸”s");
 				++errs;
 			}
 			normalizeTitle(code);
 		}
-		// ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆå–å¾—
+		// ƒtƒH[ƒ}ƒbƒgæ“¾
 		#pragma omp section
 		{
 			string buf;
 			string cmd = "youtube-dl -F --youtube-skip-dash-manifest "s + URL;
-			if (!Popen::Popen(cmd, buf, dmode)) {
+			if (!Popen::Popen(cmd, buf)) {
 				std::lock_guard lock(*(ui->mtx));
-				ui->addLOG("ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆå–å¾—å¤±æ•—"s);
+				ui->addLOG("ƒtƒH[ƒ}ƒbƒgæ“¾¸”s"s);
 				ui->addLOG(QString::fromLocal8Bit(buf.c_str()).toStdString());
 				++errs;
 			}
@@ -95,10 +95,10 @@ void YDR::Download() {
 			}
 			if (std::regex_match(VFs, std::regex("[0-9]{2,3}")) && std::regex_match(AFs, std::regex("[0-9]{2,3}"))) {
 				std::lock_guard<std::mutex> lock(*(ui->mtx));
-				ui->addLOG("ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆå–å¾—"s);
+				ui->addLOG("ƒtƒH[ƒ}ƒbƒgæ“¾"s);
 			} else {
 				std::lock_guard<std::mutex> lock(*(ui->mtx));
-				ui->addLOG("ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆå–å¾—å¤±æ•— at : Format no match"s);
+				ui->addLOG("ƒtƒH[ƒ}ƒbƒgæ“¾¸”s at : Format no match"s);
 				ui->addLOG(buf);
 				ui->dled();
 				errs++;
@@ -108,14 +108,14 @@ void YDR::Download() {
 
 	if (errs) {
 		std::lock_guard lock(*(ui->mtx));
-		ui->addLOG("ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰é–¢æ•°å®Ÿè¡Œå¤±æ•—");
+		ui->addLOG("ƒ_ƒEƒ“ƒ[ƒhŠÖ”Às¸”s");
 		ui->dled();
 		return;
 	}
 	
 	string cmd;
 	string cmd1;
-	// ã‚³ãƒãƒ³ãƒ‰ã®ä½œæˆ
+	// ƒRƒ}ƒ“ƒh‚Ìì¬
 	{
 		if (VAA & Video) {
 			cmd 			= "youtube-dl --prefer-ffmpeg --ffmpeg-location \"" + ffdir + "\" -f " + VFs
@@ -133,13 +133,13 @@ void YDR::Download() {
 
 	SetLastError(0);
 
-	// ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰
+	// ƒ_ƒEƒ“ƒ[ƒh
 	lock();
-	ui->addLOG("ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰é–‹å§‹");
+	ui->addLOG("ƒ_ƒEƒ“ƒ[ƒhŠJn");
 	unlock();
 	#pragma omp parallel sections shared(cmd, cmd1, ui)
 	{
-		// å‹•ç”»ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰
+		// “®‰æƒ_ƒEƒ“ƒ[ƒh
 		#pragma omp section
 		{
 			if (!cmd.empty()) {
@@ -151,7 +151,7 @@ void YDR::Download() {
 					wstring r;
 					GLEM(r);
 					std::lock_guard<std::mutex> lock(*(ui->mtx));
-					ui->addLOG("å‹•ç”»ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ãƒ—ãƒ­ã‚»ã‚¹èµ·å‹•å¤±æ•—"s);
+					ui->addLOG("“®‰æƒ_ƒEƒ“ƒ[ƒhƒvƒƒZƒX‹N“®¸”s"s);
 					ui->addLOG(r);
 					errs++;
 				} else {
@@ -160,19 +160,19 @@ void YDR::Download() {
 						wstring r;
 						GLEM(r);
 						std::lock_guard<std::mutex> lock(*(ui->mtx));
-						ui->addLOG("å‹•ç”»ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ãƒ—ãƒ­ã‚»ã‚¹å®Ÿè¡Œå¤±æ•— : "s);
+						ui->addLOG("“®‰æƒ_ƒEƒ“ƒ[ƒhƒvƒƒZƒXÀs¸”s : "s);
 						ui->addLOG(r);
 						errs++;
 					} else {
 						std::lock_guard<std::mutex> lock(*(ui->mtx));
-						ui->addLOG("å‹•ç”»ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ãƒ—ãƒ­ã‚»ã‚¹å®Œäº†"s);
+						ui->addLOG("“®‰æƒ_ƒEƒ“ƒ[ƒhƒvƒƒZƒXŠ®—¹"s);
 					}
 				}
 				CloseHandle(pi.hProcess);
 				CloseHandle(pi.hThread);
 			}
 		}
-		// éŸ³å£°ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰
+		// ‰¹ºƒ_ƒEƒ“ƒ[ƒh
 		#pragma omp section
 		{
 			if (!cmd1.empty()) {
@@ -184,7 +184,7 @@ void YDR::Download() {
 					wstring r;
 					GLEM(r);
 					std::lock_guard<std::mutex> lock(*(ui->mtx));
-					ui->addLOG("éŸ³å£°ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ãƒ—ãƒ­ã‚»ã‚¹èµ·å‹•å¤±æ•—"s);
+					ui->addLOG("‰¹ºƒ_ƒEƒ“ƒ[ƒhƒvƒƒZƒX‹N“®¸”s"s);
 					ui->addLOG(r);
 					errs++;
 				} else {
@@ -193,12 +193,12 @@ void YDR::Download() {
 						wstring r;
 						GLEM(r);
 						std::lock_guard<std::mutex> lock(*(ui->mtx));
-						ui->addLOG("éŸ³å£°ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ãƒ—ãƒ­ã‚»ã‚¹å®Ÿè¡Œå¤±æ•—"s);
+						ui->addLOG("‰¹ºƒ_ƒEƒ“ƒ[ƒhƒvƒƒZƒXÀs¸”s"s);
 						ui->addLOG(r);
 						errs++;
 					} else {
 						std::lock_guard<std::mutex> lock(*(ui->mtx));
-						ui->addLOG("éŸ³å£°ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ãƒ—ãƒ­ã‚»ã‚¹å®Œäº†"s);
+						ui->addLOG("‰¹ºƒ_ƒEƒ“ƒ[ƒhƒvƒƒZƒXŠ®—¹"s);
 					}
 				}
 				CloseHandle(pi.hProcess);
@@ -209,149 +209,205 @@ void YDR::Download() {
 
 	if (errs) {
 		std::lock_guard lock(*(ui->mtx));
-		ui->addLOG("ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰é–¢æ•°å®Ÿè¡Œå¤±æ•—");
+		ui->addLOG("ƒ_ƒEƒ“ƒ[ƒhŠÖ”Às¸”s");
 		ui->dled();
 		return;
 	}
 
-	// ã‚¨ãƒ³ã‚³ãƒ¼ãƒ‰
-	if ((VAA & Audio) && (AC != ACs::best)) {
-		lock();
-		ui->addLOG("ã‚¨ãƒ³ã‚³ãƒ¼ãƒ‰é–‹å§‹");
-		unlock();
-		const auto cpath = outDir / fs::u8path("Audios");
-		vector<fs::path> wavs(1);
-		cglob::glob(".opus", wavs, cpath);
-		cglob::glob(".wav", wavs, cpath);
-		cglob::glob(".webm", wavs, cpath);
-		unordered_map<string, fs::path> thumbpass(1);
-		if (th) {
-			for (const auto &x : wavs) {
-				vector<fs::path> tmp;
-				if (cglob::glob(x.stem().generic_string() + ".jpg", tmp, cpath)) {
-					thumbpass.emplace(x.stem().generic_string(), tmp[0]);
+	lock();
+	ui->addLOG("ƒGƒ“ƒR[ƒhŠJn");
+	unlock();
+
+	#pragma omp parallel sections shared(ui)
+	{
+		#pragma omp section
+		{
+			// “®‰æƒGƒ“ƒR[ƒh
+			if (VAA & Video) {
+				const auto cpath = outDir / fs::u8path("Videos");
+				vector<fs::path> mov(1);
+				cglob::glob(".mp4", mov, cpath);
+				cglob::glob(".webm", mov, cpath);
+				string newfile;
+				for (const auto &x : mov) {
+					if (x.empty()) continue;
+					string jsonpass = (outDir / fs::path("Videos") / x.stem()).string() + ".info.json";
+					newfile = (outDir / fs::path("Videos") / x.stem()).string() + "_enc.mp4";
+					string cmd2 = ffdir + " -y -loglevel "s + (dmode == Popen::Debug ? "info"s : "quiet"s) + " -i \"" + x.string()
+								+ "\" -strict -2 -c:a copy -c:v libx264 ";
+					if (vmode == 1) cmd2 += "-vbr " + std::to_string(vbr);
+					else 			cmd2 += "-crf " + std::to_string(crf);
+					cmd2 += " \"" + newfile + "\"";
+					string r;
+					bool ret = !Popen::Popen(utf8_to_sjis(cmd2), r, dmode);
+					if (r.find("Debug") == string::npos && !(ret || r.empty())) {
+						lock();
+						ui->addLOG("Command : ");
+						ui->addLOG(cmd2);
+						ui->addLOG(r);
+						unlock();
+						++errs;
+						break;
+					}
+
+					// Œ³ƒf[ƒ^‚Ìíœ
+					if (!leave || !!errs)	{
+						std::error_code ec;
+						fs::remove(x, ec);
+						if (ec.value() != 0) {
+							std::lock_guard lock(*(ui->mtx));
+							ui->addLOGasis("Raw file remove error code : " + std::to_string(ec.value()) + "\n" + ec.message());
+							++errs;
+						}
+						ec.clear();
+						fs::remove(jsonpass, ec);
+						if (ec.value() != 0) {
+							std::lock_guard lock(*(ui->mtx));
+							ui->addLOGasis("Raw file remove error code : " + std::to_string(ec.value()) + "\n" + ec.message());
+							++errs;
+						}
+					}
 				}
 			}
 		}
-		string acodec;
-		string format;
-		string exp;
-		switch (AC) {
-			case ACs::wav:
-				acodec = "-c:a pcm_s16le";
-				exp = "wav";
-				break;
-			case ACs::flac:
-				acodec = "-c:a flac -compression_level 12";
-				exp = "flac";
-				break;
-			case ACs::alac:
-				acodec = "-c:a alac";
-				exp = "m4a";
-				break;
-			case ACs::aac:
-				acodec = "-b:a 256k -aac_coder twoloop -c:a aac -strict experimental";
-				exp = "aac";
-				break;
-			case ACs::mp3:
-				acodec = "-b:a " + to_string(bt * 2) + "k -c:a libmp3lame -strict unofficial -id3v2_version 3";
-				exp = "mp3";
-				break;
-		}
-		string newfile;
-		for (const auto &x : wavs) {
-			if (x.empty()) continue;
-			newfile = (outDir / fs::path("Audios") / x.stem()).string() + "." + exp;
-
-			string jsonpass = (outDir / fs::path("Audios") / x.stem()).string() + ".info.json";
-			std::ifstream fs(utf8_to_sjis(jsonpass), std::ios::in);
-			string artist, title, date, comment;
-			if (!fs.fail()) {
-				const string json = string(std::istreambuf_iterator<char>(fs), std::istreambuf_iterator<char>());
-				fs.close();
-				if (json.empty()) continue;
-
-				picojson::value sv;
-				const string err = picojson::parse(sv, json);
-
-				if (!err.empty()) {
-					std::lock_guard lock(*(ui->mtx));
-					ui->addLOG(err);
+		#pragma omp section
+		{
+			// ‰¹ºƒGƒ“ƒR[ƒh
+			if ((VAA & Audio) && (AC != ACs::best)) {
+				const auto cpath = outDir / fs::u8path("Audios");
+				vector<fs::path> wavs(1);
+				cglob::glob(".opus", wavs, cpath);
+				cglob::glob(".wav", wavs, cpath);
+				cglob::glob(".webm", wavs, cpath);
+				unordered_map<string, fs::path> thumbpass(1);
+				if (th) {
+					for (const auto &x : wavs) {
+						vector<fs::path> tmp;
+						if (cglob::glob(x.stem().generic_string() + ".jpg", tmp, cpath)) {
+							thumbpass.emplace(x.stem().generic_string(), tmp[0]);
+						}
+					}
 				}
-				picojson::object &cfg_ = sv.get<picojson::object>();
-
-				auto artist_ 	= cfg_["uploader"].get<string>();
-				auto title_ 	= cfg_["title"].get<string>();
-				auto date_ 		= cfg_["upload_date"].get<string>();
-				auto comment_	= cfg_["description"].get<string>();
-
-				int rb 	 = decode_unicode_escape_to_utf8(artist_, artist);
-				rb 		+= decode_unicode_escape_to_utf8(title_, title);
-				rb 		+= decode_unicode_escape_to_utf8(date_, date);
-				rb 		+= decode_unicode_escape_to_utf8(comment_, comment);
-
-				lock();
-				ui->addLOGasis(
-					artist + "\n" + title + "\n" + date + "\n" + comment
-				);
-				unlock();
-				normalize(comment);
-			} else {
-				std::lock_guard lock(*(ui->mtx));
-				ui->addLOG("ãƒ¡ã‚¿ãƒ‡ãƒ¼ã‚¿æƒ…å ±ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸ");
-				ui->addLOG(jsonpass);
-			}
-
-			string cmd2 = ffdir + " -y -loglevel "s + (dmode == Popen::Debug ? "info"s : "quiet"s) + " -vn -i \""s + x.string();
-			if (th && !thumbpass[x.stem().generic_string()].empty()) {
-				cmd2 	+= "\" -i \"" + thumbpass[x.stem().generic_string()].string();
-			}
-			cmd2 		+= "\" -disposition attached_pic -ar 44100 -ac 2 " + acodec
-						+ " -metadata \"title\"=\"" + title + "\" -metadata \"artist\"=\"" + artist + "\" -metadata \"date\"=\"" 
-						+ date + "\" -metadata \"comment\"=\"" + comment + "\" "
-						+ "\"" + newfile + "\"";
-			string r;
-			bool ret = !Popen::Popen(utf8_to_sjis(cmd2), r, dmode);
-			if (r.find("Debug") == string::npos && !(ret || r.empty())) {
-				lock();
-				ui->addLOG("Command : ");
-				ui->addLOG(cmd2);
-				ui->addLOG(r);
-				unlock();
-				++errs;
-				break;
-			}
-
-			// å…ƒãƒ‡ãƒ¼ã‚¿ã®å‰Šé™¤
-			if (!leave || !!errs)	{
-				std::error_code ec;
-				fs::remove(x, ec);
-				if (ec.value() != 0) {
-					std::lock_guard lock(*(ui->mtx));
-					ui->addLOGasis("Raw file remove error code : " + std::to_string(ec.value()) + "\n" + ec.message());
-					++errs;
+				string acodec;
+				string format;
+				string exp;
+				switch (AC) {
+					case ACs::wav:
+						acodec = "-c:a pcm_s16le";
+						exp = "wav";
+						break;
+					case ACs::flac:
+						acodec = "-c:a flac -compression_level 12";
+						exp = "flac";
+						break;
+					case ACs::alac:
+						acodec = "-c:a alac";
+						exp = "m4a";
+						break;
+					case ACs::aac:
+						acodec = "-b:a 256k -aac_coder twoloop -c:a aac -strict experimental";
+						exp = "aac";
+						break;
+					case ACs::mp3:
+						acodec = "-b:a " + to_string(bt * 2) + "k -c:a libmp3lame -strict unofficial -id3v2_version 3";
+						exp = "mp3";
+						break;
 				}
-				ec.clear();
-				fs::remove(jsonpass, ec);
-				if (ec.value() != 0) {
-					std::lock_guard lock(*(ui->mtx));
-					ui->addLOGasis("Raw file remove error code : " + std::to_string(ec.value()) + "\n" + ec.message());
-					++errs;
+				string newfile;
+				for (const auto &x : wavs) {
+					if (x.empty()) continue;
+					newfile = (outDir / fs::path("Audios") / x.stem()).string() + "." + exp;
+
+					string jsonpass = (outDir / fs::path("Audios") / x.stem()).string() + ".info.json";
+					std::ifstream fs(utf8_to_sjis(jsonpass), std::ios::in);
+					string artist, title, date, comment;
+					if (!fs.fail()) {
+						const string json = string(std::istreambuf_iterator<char>(fs), std::istreambuf_iterator<char>());
+						fs.close();
+						if (json.empty()) continue;
+
+						picojson::value sv;
+						const string err = picojson::parse(sv, json);
+
+						if (!err.empty()) {
+							std::lock_guard lock(*(ui->mtx));
+							ui->addLOG(err);
+						}
+						picojson::object &cfg_ = sv.get<picojson::object>();
+
+						auto artist_ 	= cfg_["uploader"].get<string>();
+						auto title_ 	= cfg_["title"].get<string>();
+						auto date_ 		= cfg_["upload_date"].get<string>();
+						auto comment_	= cfg_["description"].get<string>();
+
+						int rb 	 = decode_unicode_escape_to_utf8(artist_, artist);
+						rb 		+= decode_unicode_escape_to_utf8(title_, title);
+						rb 		+= decode_unicode_escape_to_utf8(date_, date);
+						rb 		+= decode_unicode_escape_to_utf8(comment_, comment);
+
+						lock();
+						ui->addLOGasis(
+							artist + "\n" + title + "\n" + date + "\n" + comment
+						);
+						unlock();
+						normalize(comment);
+					} else {
+						std::lock_guard lock(*(ui->mtx));
+						ui->addLOG("ƒƒ^ƒf[ƒ^î•ñ‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½");
+						ui->addLOG(jsonpass);
+					}
+
+					string cmd2 = ffdir + " -y -loglevel "s + (dmode == Popen::Debug ? "info"s : "quiet"s) + " -vn -i \""s + x.string();
+					if (th && !thumbpass[x.stem().generic_string()].empty()) {
+						cmd2 	+= "\" -i \"" + thumbpass[x.stem().generic_string()].string();
+					}
+					cmd2 		+= "\" -disposition attached_pic -ar 44100 -ac 2 " + acodec
+								+ " -metadata \"title\"=\"" + title + "\" -metadata \"artist\"=\"" + artist + "\" -metadata \"date\"=\"" 
+								+ date + "\" -metadata \"comment\"=\"" + comment + "\" "
+								+ "\"" + newfile + "\"";
+					string r;
+					bool ret = !Popen::Popen(utf8_to_sjis(cmd2), r, dmode);
+					if (r.find("Debug") == string::npos && !(ret || r.empty())) {
+						lock();
+						ui->addLOG("Command : ");
+						ui->addLOG(cmd2);
+						ui->addLOG(r);
+						unlock();
+						++errs;
+						break;
+					}
+
+					// Œ³ƒf[ƒ^‚Ìíœ
+					if (!leave || !!errs)	{
+						std::error_code ec;
+						fs::remove(x, ec);
+						if (ec.value() != 0) {
+							std::lock_guard lock(*(ui->mtx));
+							ui->addLOGasis("Raw file remove error code : " + std::to_string(ec.value()) + "\n" + ec.message());
+							++errs;
+						}
+						ec.clear();
+						fs::remove(jsonpass, ec);
+						if (ec.value() != 0) {
+							std::lock_guard lock(*(ui->mtx));
+							ui->addLOGasis("Raw file remove error code : " + std::to_string(ec.value()) + "\n" + ec.message());
+							++errs;
+						}
+					}
 				}
 			}
 		}
 	}
-
 	if (errs) {
 		std::lock_guard lock(*(ui->mtx));
 		ui->dled();
 		return;
 	}
 	
-	// ä¸€æ™‚ãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰å¤–ã¸
+	// ˆêƒtƒ@ƒCƒ‹‚©‚çŠO‚Ö
 	#pragma omp parallel sections
 	{
-		// Videos ã®ä¸­èº«ã‚’å¤–ã¸
+		// Videos ‚Ì’†g‚ğŠO‚Ö
 		#pragma omp section
 		{
 			vector<fs::path> ps;
@@ -383,7 +439,7 @@ void YDR::Download() {
 				}
 			}
 		}
-		// Audios ã®ä¸­èº«ã‚’å¤–ã¸
+		// Audios ‚Ì’†g‚ğŠO‚Ö
 		#pragma omp section
 		{
 			vector<fs::path> ps;
@@ -420,13 +476,13 @@ void YDR::Download() {
 
 	if (errs) {
 		std::lock_guard lock(*(ui->mtx));
-		ui->addLOG("ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰é–¢æ•°å®Ÿè¡Œå¤±æ•—");
+		ui->addLOG("ƒ_ƒEƒ“ƒ[ƒhŠÖ”Às¸”s");
 		ui->dled();
 		return;
 	}
 
 	lock();
-	ui->addLOG("ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰çµ‚äº†");
+	ui->addLOG("ƒ_ƒEƒ“ƒ[ƒhI—¹");
 	ui->dled();
 	unlock();
 
@@ -462,35 +518,30 @@ inline void opening(Widget *ui) {
 	}
 }
 
-template<typename TYPE>
-struct LenArray {
-	TYPE array;
-	size_t len;
-};
-
-int fontnum = 0;
+unsigned int fontnum = 0;
 
 int CALLBACK EnumFontFamExProc(ENUMLOGFONTEXW *lpelfe, NEWTEXTMETRICEX *lpntme, int FontType , LPARAM lParam) {
-	auto p = reinterpret_cast<LenArray<const wchar_t *> *>(lParam);
-	p[fontnum].array = &lpelfe->elfFullName[0];
-	p[fontnum].len = wcslen(p[fontnum].array);
+	auto p = reinterpret_cast<wstring *>(lParam);
+    if (fontnum >= 1024) return 1;
+	p[fontnum] = wstring(lpelfe->elfFullName);
 	++fontnum;
 	return 1;
 }
 
 class Fonts {
 	public:
-		std::array<LenArray<const wchar_t *>, 2048> FontNames;
-		bool searchFont(wstring name) {
-			for (auto i = 0; i < fontnum; ++i) {
-				auto FontName = wstring(FontNames[i].array, FontNames[i].len);
-				if(FontName.find(name) != wstring::npos) {
+		std::array<wstring, 1024> FontNames;
+		bool searchFont(const wstring &name) {
+            for (unsigned int i = 0; i < fontnum; ++i) {
+                const wstring font = FontNames[i];
+				if(font.find(name) != wstring::npos) {  
 					return true;
 				}
 			}
 			return false;
 		}
 		Fonts() {
+            FontNames.fill(L"NaN\0");
 			LOGFONTW lf;
 			HDC hdc = GetDC(0);
 			lf.lfFaceName[0] = 0;
@@ -499,14 +550,13 @@ class Fonts {
 			EnumFontFamiliesExW(hdc, &lf, (FONTENUMPROCW)EnumFontFamExProc, reinterpret_cast<LPARAM>(this->FontNames.data()), 0);
 			ReleaseDC(0, hdc);
 		}
-
 };
 
 inline void CreateConsole(void) {
     FILE* fp;
     AllocConsole();
-    freopen_s(&fp, "CONOUT$", "w", stdout); /* æ¨™æº–å‡ºåŠ›(stdout)ã‚’æ–°ã—ã„ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã«å‘ã‘ã‚‹ */
-    freopen_s(&fp, "CONOUT$", "w", stderr); /* æ¨™æº–ã‚¨ãƒ©ãƒ¼å‡ºåŠ›(stderr)ã‚’æ–°ã—ã„ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã«å‘ã‘ã‚‹ */
+    freopen_s(&fp, "CONOUT$", "w", stdout); /* •W€o—Í(stdout)‚ğV‚µ‚¢ƒRƒ“ƒ\[ƒ‹‚ÉŒü‚¯‚é */
+    freopen_s(&fp, "CONOUT$", "w", stderr); /* •W€ƒGƒ‰[o—Í(stderr)‚ğV‚µ‚¢ƒRƒ“ƒ\[ƒ‹‚ÉŒü‚¯‚é */
 }
 
 int main(int argc, char **argv) {
@@ -514,7 +564,7 @@ int main(int argc, char **argv) {
 	SetConsoleOutputCP(CP_UTF8);
 
 	try {
-		// mainã®æœ€åˆã§QApplicationã‚’ä½œã£ã¦ãŠã
+		// main‚ÌÅ‰‚ÅQApplication‚ğì‚Á‚Ä‚¨‚­
 		QApplication app(argc, argv);
 		
 		Fonts font; QFont uifont;
@@ -525,21 +575,21 @@ int main(int argc, char **argv) {
 		}
 		app.setFont(uifont);
 
-		// è‡ªä½œã®Widgetã‚¯ãƒ©ã‚¹ã‚’ç”Ÿæˆã€è¡¨ç¤º
+		// ©ì‚ÌWidgetƒNƒ‰ƒX‚ğ¶¬A•\¦
 		Widget *widget = new Widget;
 		widget->show();
 		opening(widget);
 
-		// ãƒ«ãƒ¼ãƒ—ã«å…¥ã‚‹
+		// ƒ‹[ƒv‚É“ü‚é
 		return app.exec();
 	} catch (std::runtime_error ex) {
-		MessageBox(NULL, ex.what(), "èµ·å‹•ã«å¤±æ•—ã—ã¾ã—ãŸã€‚", MB_OK | MB_ICONWARNING);
+		MessageBox(NULL, ex.what(), "ƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½", MB_OK | MB_ICONWARNING);
 		return 0;
 	} catch (std::exception ex) {
-		MessageBox(NULL, ex.what(), "èµ·å‹•ã«å¤±æ•—ã—ã¾ã—ãŸã€‚", MB_OK | MB_ICONWARNING);
+		MessageBox(NULL, ex.what(), "ƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½", MB_OK | MB_ICONWARNING);
 		return 0;
 	} catch (...) {
-		MessageBox(NULL, "åŸå› ä¸æ˜ã®èµ·å‹•ã‚¨ãƒ©ãƒ¼ã§ã™", "èµ·å‹•ã«å¤±æ•—ã—ã¾ã—ãŸã€‚", MB_OK | MB_ICONWARNING);
+		MessageBox(NULL, "Œ´ˆö•s–¾‚Ì‹N“®ƒGƒ‰[‚Å‚·", "ƒGƒ‰[‚ª”­¶‚µ‚Ü‚µ‚½", MB_OK | MB_ICONWARNING);
 		return 0;
 	}
 }

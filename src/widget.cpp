@@ -151,7 +151,19 @@ Widget::Widget(QWidget *parent) : QWidget(parent), mtx(new std::mutex), LOGt(new
     connect(SButton, SIGNAL(clicked()), this, SLOT(SelectDir()));
 	connect(DLButton, SIGNAL(clicked()), this, SLOT(Download()));
 	connect(diaButton, SIGNAL(clicked()), this, SLOT(openDialog()));
-	connect(Mp3Qua, SIGNAL(valueChanged(int)), this, SLOT(updateQuaNum(int)));
+
+	connect(MP3Qua, SIGNAL(valueChanged(int)), this, SLOT(updateMP3QuaSlider(int)));
+	connect(MP3QuaNum, SIGNAL(textChanged()), this, SLOT(updateMP3QuaNum()));
+	connect(MP3QuaNum, SIGNAL(returnPressed()), this, SLOT(updateMP3QuaNum()));
+	
+	connect(VBR, SIGNAL(valueChanged(int)), this, SLOT(updateVBRSlider(int)));
+	connect(VBRNum, SIGNAL(textChanged()), this, SLOT(updateVBRNum()));
+	connect(VBRNum, SIGNAL(returnPressed()), this, SLOT(updateVBRNum()));
+	
+	connect(CRF, SIGNAL(valueChanged(int)), this, SLOT(updateCRFSlider(int)));
+	connect(CRFNum, SIGNAL(textChanged()), this, SLOT(updateCRFNum()));
+	connect(CRFNum, SIGNAL(returnPressed()), this, SLOT(updateCRFNum()));
+	
 	connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
 	connect(LOGt, SIGNAL(timeout()), this, SLOT(updateLOG()));
 	connect(timer, SIGNAL(timeout()), this, SLOT(DownloadEnd()));
@@ -339,7 +351,7 @@ void Widget::openDialogAnime() {
 	oda->setDuration(1000);
 	QRect rec = UiSelect->geometry();
 	oda->setStartValue(rec);
-	oda->setEndValue(QRect(rec.x() + 360, rec.y(), rec.width(), rec.height()));
+	oda->setEndValue(QRect(rec.x() + 760, rec.y(), rec.width(), rec.height()));
 	oda->setEasingCurve(QEasingCurve::InOutCirc);
 	oda->start(QAbstractAnimation::DeleteWhenStopped);
 
@@ -368,7 +380,7 @@ void Widget::closeDialogAnime() {
 	cda->setDuration(1000);
 	QRect rec = UiSelect->geometry();
 	cda->setStartValue(rec);
-	cda->setEndValue(QRect(rec.x() - 360, rec.y(), rec.width(), rec.height()));
+	cda->setEndValue(QRect(rec.x() - 760, rec.y(), rec.width(), rec.height()));
 	cda->setEasingCurve(QEasingCurve::InOutCirc);
 	cda->start(QAbstractAnimation::DeleteWhenStopped);
 
@@ -391,10 +403,73 @@ void Widget::openDialog() {
 	else			closeDialogAnime();
 }
 
-void Widget::updateQuaNum(int value) {
+void Widget::updateMP3QuaSlider(int value) {
 	qDebug() << QString("Call Update Quality Num");
-	Mp3QuaNum->setText(QString::number(value) + QString("k"));
-	Mp3QuaNum->update();
+	value = value < 96 ? 96 : (value > 512 ? 512 : value);
+	MP3QuaNum->setText(QString::number(value) + QString("k"));
+	MP3QuaNum->update();
+}
+
+void Widget::updateMP3QuaNum() {
+	qDebug() << QString("Call Update Quality Num");
+	std::string src = MP3QuaNum->text().toStdString();
+	int i;
+	try {
+		i = std::stoi(src);
+		i = i < 96 ? 96 : (i > 512 ? 512 : i);
+	} catch (std::invalid_argument ex) {
+		i = 96;
+	}
+	MP3Qua->setValue(i);
+	MP3Qua->update();
+	MP3QuaNum->setText(QString::number(i) + QString('k'));
+	MP3QuaNum->update();
+}
+
+void Widget::updateVBRSlider(int value) {
+	qDebug() << QString("Call Update Quality Num");
+	value = value < 0 ? 0 : (value > 512 ? 512 : value);
+	VBRNum->setText(QString::number(value) + QString("Mbps"));
+	VBRNum->update();
+}
+
+void Widget::updateVBRNum() {
+	qDebug() << QString("Call Update Quality Num");
+	std::string src = VBRNum->text().toStdString();
+	int i;
+	try {
+		i = std::stoi(src);
+		i = i < 0 ? 0 : (i > 512 ? 512 : i);
+	} catch (std::invalid_argument ex) {
+		i = 96;
+	}
+	VBR->setValue(i);
+	VBR->update();
+	VBRNum->setText(QString::number(i) + QString("Mbps"));
+	VBRNum->update();
+}
+
+void Widget::updateCRFSlider(int value) {
+	qDebug() << QString("Call Update Quality Num");
+	value = value < 0 ? 0 : (value > 51 ? 51 : value);
+	CRFNum->setText(QString::number(value));
+	CRFNum->update();
+}
+
+void Widget::updateCRFNum() {
+	qDebug() << QString("Call Update Quality Num");
+	std::string src = CRFNum->text().toStdString();
+	int i;
+	try {
+		i = std::stoi(src);
+		i = i < 0 ? 0 : (i > 51 ? 51 : i);
+	} catch (std::invalid_argument ex) {
+		i = 96;
+	}
+	VBR->setValue(i);
+	VBR->update();
+	VBRNum->setText(QString::number(i));
+	VBRNum->update();
 }
 
 bool Widget::dled() {
@@ -411,8 +486,9 @@ void Widget::DownloadEnd() {
 }
 
 void dl	(Widget *const iui, const string iURL, const fs::path ioutDir, const string iffdir,
-		const uint8_t iVAA, const int iAC, const unsigned int ibt, const bool ith, const bool ileave, const bool iex, const int idmode) noexcept{
-	YDR proc(iui, iURL, ioutDir, iffdir, iVAA, iAC, ibt, ith, ileave, iex, idmode);
+		const uint8_t iVAA, const int iAC, const unsigned int ibt, const unsigned int ivbr, const unsigned int icrf,
+		const unsigned int ivmode, const bool ith, const bool ileave, const bool iex, const int idmode) noexcept{
+	YDR proc(iui, iURL, ioutDir, iffdir, iVAA, iAC, ibt, ivbr, icrf, ivmode, ith, ileave, iex, idmode);
 	proc.Download();
 	return;
 }
@@ -451,8 +527,19 @@ void Widget::Download() {
 		return;
 	}
 	
+
 	const int ac = ACCombo->currentIndex();
-	const unsigned int bt = static_cast<unsigned int>(Mp3Qua->value());
+	updateMP3QuaNum();
+	const unsigned int bt = static_cast<unsigned int>(MP3Qua->value());
+	updateMP3QuaSlider(bt);
+	updateVBRNum();
+	const unsigned int vbr = static_cast<unsigned int>(VBR->value()) * 1'000'000;
+	updateVBRSlider(VBR->value());
+	updateCRFNum();
+	const unsigned int crf = static_cast<unsigned int>(CRF->value());
+	updateCRFSlider(CRF->value());
+	const unsigned int vmode 	= static_cast<unsigned int>(VBRCheck->checkState() == Qt::Checked)
+								+ static_cast<unsigned int>(CRFCheck->checkState() == Qt::Checked) << 1;
 	const bool th = ThCheckBox->checkState() == Qt::Checked;
 	const bool lev = Leave->checkState() == Qt::Checked;
 	const bool ex = ExitCheckBox->checkState() == Qt::Checked;
@@ -461,6 +548,6 @@ void Widget::Download() {
 	timer->start(msec);
 	LOGt->start(msec);
 
-	thr_dl = std::thread(dl, this, url, fs::path(od), ffdir, VAA, ac, bt, th, lev, ex, dmode);
+	thr_dl = std::thread(dl, this, url, fs::path(od), ffdir, VAA, ac, bt, vbr, crf, vmode, th, lev, ex, dmode);
 	return;
 }
